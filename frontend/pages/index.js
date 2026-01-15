@@ -75,7 +75,8 @@ export default function Home() {
   }
 
   function handleHouseAdded(newHouse) {
-    setHouses(prev => [...prev, { ...newHouse, currentDate: new Date() }])
+    if (!newHouse || !newHouse.id) return
+    setHouses(prev => [...prev, { ...newHouse, name: newHouse.name || 'Unnamed', currentDate: new Date() }])
   }
 
   function openEditHouse(index) {
@@ -164,8 +165,8 @@ export default function Home() {
           username={username}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {houses.filter(h => (h.name || '').toLowerCase().includes(search.toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
-          {houses.filter(h => (h.name || '').toLowerCase().includes(search.toLowerCase())).map((h, i) => (
+          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
+          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).map((h, i) => (
             <HouseCard
               key={h.id}
               index={i}
