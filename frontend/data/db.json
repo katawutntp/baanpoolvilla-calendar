@@ -1,0 +1,71 @@
+{
+  "houses": [],
+  "nextHouseId": 14,
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "peem",
+      "password": "123456",
+      "role": "agent"
+    },
+    {
+      "id": 3,
+      "username": "1",
+      "password": "1111",
+      "role": "agent"
+    }
+  ],
+  "nextUserId": 4,
+  "tokens": {
+    "token_iyz3akkoqqk": {
+      "userId": 1,
+      "role": "admin"
+    },
+    "token_c3hwb94qb59": {
+      "userId": 2,
+      "role": "agent"
+    },
+    "token_dilnbeckymq": {
+      "userId": 1,
+      "role": "admin"
+    },
+    "token_hk9g12a0pp6": {
+      "userId": 1,
+      "role": "admin"
+    },
+    "token_8kvfiii4c89": {
+      "userId": 2,
+      "role": "agent"
+    },
+    "token_ke5d1jhf7j": {
+      "userId": 1,
+      "role": "admin"
+    },
+    "token_m00zi0jau6o": {
+      "userId": 2,
+      "role": "agent"
+    },
+    "token_8wj5j5axclt": {
+      "userId": 2,
+      "role": "agent"
+    },
+    "token_vcjti50q67g": {
+      "userId": 1,
+      "role": "admin"
+    },
+    "token_5nu1i3tvyam": {
+      "userId": 3,
+      "role": "agent"
+    },
+    "token_mt31aydmujm": {
+      "userId": 1,
+      "role": "admin"
+    }
+  }
+}
