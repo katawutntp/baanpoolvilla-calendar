@@ -1,4 +1,4 @@
-import { deleteToken } from '../../lib/db';
+import { deleteToken } from '@/lib/db';
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {

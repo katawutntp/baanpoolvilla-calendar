@@ -1,5 +1,5 @@
-import { readDB } from '../../lib/db';
-import { runMiddleware, adminRequired } from '../../lib/middleware';
+import { readDB } from '@/lib/db';
+import { runMiddleware, adminRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {

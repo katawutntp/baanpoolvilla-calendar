@@ -1,5 +1,5 @@
-import { readDB, writeDB, setToken, deleteToken } from '../../../lib/db';
-import { runMiddleware, authRequired } from '../../../lib/middleware';
+import { readDB, writeDB } from '@/lib/db';
+import { runMiddleware, authRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
   const { id } = req.query;

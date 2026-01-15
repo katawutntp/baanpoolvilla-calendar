@@ -1,4 +1,4 @@
-import { readDB, writeDB, setToken } from '../../lib/db';
+import { readDB, writeDB, setToken } from '@/lib/db';
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {

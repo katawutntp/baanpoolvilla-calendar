@@ -1,4 +1,4 @@
-import { readDB, writeDB } from '../../lib/db';
+import { readDB, writeDB } from '@/lib/db';
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {
