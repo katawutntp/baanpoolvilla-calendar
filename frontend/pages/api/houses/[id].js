@@ -6,19 +6,35 @@ export default async function handler(req, res) {
   const houseId = Number(id);
 
   if (req.method === 'PUT') {
-    // Update booking (price/status for a date)
-    const { date, price, status } = req.body;
-    if (!date) return res.status(400).json({ error: 'date required' });
-
     const db = readDB();
     const house = db.houses.find(h => h.id === houseId);
     if (!house) return res.status(404).json({ error: 'house not found' });
 
-    house.prices[date] = { price: price !== undefined ? price : null, status: status || 'available' };
+    const { date, price, status, name, capacity } = req.body;
+
+    // Update house name/capacity
+    if (name !== undefined) {
+      house.name = name;
+    }
+    if (capacity !== undefined) {
+      house.capacity = capacity;
+    }
+
+    // Update booking (price/status for a date)
+    if (date) {
+      house.prices[date] = { price: price !== undefined ? price : null, status: status || 'available' };
+    }
+
     writeDB(db);
     res.json(house);
   } 
   else if (req.method === 'DELETE') {
+    try {
+      await runMiddleware(req, res, authRequired);
+    } catch (err) {
+      return res.status(401).json({ error: err.message || 'Unauthorized' });
+    }
+
     const db = readDB();
     db.houses = db.houses.filter(h => h.id !== houseId);
     writeDB(db);
