@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as api from '../lib/api'
 
-export default function WeeklyModal({ houses, onClose, onSaved }){
+export default function WeeklyModal({ houses = [], onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(houses?.[0]?.id || null)
   const [weekdayPrices, setWeekdayPrices] = useState({ '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' })
   const [holidays, setHolidays] = useState([

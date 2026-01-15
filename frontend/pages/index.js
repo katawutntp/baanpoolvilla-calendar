@@ -38,8 +38,17 @@ export default function Home() {
   }, [])
   
   async function load() {
-    const data = await api.getHouses()
-    setHouses(data.map(h => ({ ...h, currentDate: new Date() })))
+    try {
+      const data = await api.getHouses()
+      if (Array.isArray(data)) {
+        setHouses(data.map(h => ({ ...h, name: h.name || 'Unnamed', currentDate: new Date() })))
+      } else {
+        setHouses([])
+      }
+    } catch (err) {
+      console.error('Failed to load houses:', err)
+      setHouses([])
+    }
   }
 
   function handleLoginSuccess(role) {
@@ -155,8 +164,8 @@ export default function Home() {
           username={username}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {houses.filter(h => h.name.toLowerCase().includes(search.toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
-          {houses.filter(h => h.name.toLowerCase().includes(search.toLowerCase())).map((h, i) => (
+          {houses.filter(h => (h.name || '').toLowerCase().includes(search.toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
+          {houses.filter(h => (h.name || '').toLowerCase().includes(search.toLowerCase())).map((h, i) => (
             <HouseCard
               key={h.id}
               index={i}

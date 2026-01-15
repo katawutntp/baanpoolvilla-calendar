@@ -11,11 +11,21 @@ export function getAuthHeader() {
 }
 
 export async function getHouses(){
-  const res = await fetch(`${API_BASE}/houses`)
-  return res.json()
+  try {
+    const res = await fetch(`${API_BASE}/houses`)
+    if (!res.ok) return []
+    return res.json()
+  } catch (err) {
+    console.error('getHouses error:', err)
+    return []
+  }
 }
 export async function addHouse(name, capacity = 4){
-  const res = await fetch(`${API_BASE}/houses`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, capacity}) })
+  const res = await fetch(`${API_BASE}/houses`, { 
+    method:'POST', 
+    headers:{'Content-Type':'application/json', ...getAuthHeader()}, 
+    body: JSON.stringify({name, capacity}) 
+  })
   return res.json()
 }
 export async function updateHouse(houseId, data){
@@ -31,10 +41,10 @@ export async function applyHolidayPrices(houseId, payload){
   return res.json()
 }
 export async function updateBooking(houseId, payload){
-  const res = await fetch(`${API_BASE}/houses/${houseId}/booking`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+  const res = await fetch(`${API_BASE}/houses/${houseId}/booking`, { method:'PUT', headers:{'Content-Type':'application/json', ...getAuthHeader()}, body: JSON.stringify(payload) })
   return res.json()
 }
 export async function deleteHouse(houseId){
-  const res = await fetch(`${API_BASE}/houses/${houseId}`, { method:'DELETE' })
+  const res = await fetch(`${API_BASE}/houses/${houseId}`, { method:'DELETE', headers: getAuthHeader() })
   return res.json()
 }

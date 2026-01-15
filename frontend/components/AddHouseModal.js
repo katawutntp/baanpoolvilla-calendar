@@ -23,10 +23,14 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
     setError('')
     try {
       const newHouse = await api.addHouse(name, cap)
-      onHouseAdded(newHouse)
-      setName('')
-      setCapacity('4')
-      onClose()
+      if (newHouse && newHouse.id) {
+        onHouseAdded(newHouse)
+        setName('')
+        setCapacity('4')
+        onClose()
+      } else {
+        setError('เพิ่มบ้านล้มเหลว: ' + (newHouse?.error || 'Unknown error'))
+      }
     } catch (err) {
       setError('เพิ่มบ้านล้มเหลว: ' + (err.message || err))
     } finally {

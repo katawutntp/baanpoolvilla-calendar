@@ -31,8 +31,12 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setError('')
     try {
       const updated = await api.updateHouse(house.id, { name, capacity: cap })
-      onHouseUpdated(updated)
-      onClose()
+      if (updated && updated.id) {
+        onHouseUpdated(updated)
+        onClose()
+      } else {
+        setError('แก้ไขบ้านล้มเหลว: ' + (updated?.error || 'Unknown error'))
+      }
     } catch (err) {
       setError('แก้ไขบ้านล้มเหลว: ' + (err.message || err))
     } finally {
