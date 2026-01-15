@@ -12,7 +12,7 @@ export default function AdminPanel({ onClose }) {
   async function loadUsers() {
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch('http://localhost:3000/api/users', {
+      const res = await fetch('/api/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to load users')
@@ -28,7 +28,7 @@ export default function AdminPanel({ onClose }) {
   async function changeRole(userId, newRole) {
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`http://localhost:3000/api/users/${userId}/role`, {
+      const res = await fetch(`/api/users/${userId}/role`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export default function AdminPanel({ onClose }) {
     
     try {
       const token = localStorage.getItem('adminToken')
-      const res = await fetch(`http://localhost:3000/api/users/${userId}`, {
+      const res = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
