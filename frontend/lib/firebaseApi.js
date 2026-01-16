@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -27,11 +28,12 @@ async function getNextId(counterName) {
     
     if (!counterSnap.exists()) {
       // Create counter if not exists
-      await updateDoc(counterRef, { value: 1 });
+      await setDoc(counterRef, { value: 1 });
       return 1;
     }
     
-    const nextValue = counterSnap.data().value + 1;
+    const currentValue = counterSnap.data().value || 0;
+    const nextValue = currentValue + 1;
     await updateDoc(counterRef, { value: nextValue });
     return nextValue;
   } catch (error) {
