@@ -10,11 +10,35 @@ import {
   query,
   orderBy,
   where,
-  serverTimestamp
+  serverTimestamp,
+  increment
 } from 'firebase/firestore';
 
 const HOUSES_COLLECTION = 'houses';
 const USERS_COLLECTION = 'users';
+const COUNTERS_COLLECTION = 'counters';
+
+// ===== Counter Helper =====
+
+async function getNextId(counterName) {
+  try {
+    const counterRef = doc(db, COUNTERS_COLLECTION, counterName);
+    const counterSnap = await getDoc(counterRef);
+    
+    if (!counterSnap.exists()) {
+      // Create counter if not exists
+      await updateDoc(counterRef, { value: 1 });
+      return 1;
+    }
+    
+    const nextValue = counterSnap.data().value + 1;
+    await updateDoc(counterRef, { value: nextValue });
+    return nextValue;
+  } catch (error) {
+    console.error('Error getting next ID:', error);
+    throw error;
+  }
+}
 
 // ===== Houses =====
 
@@ -36,11 +60,13 @@ export async function getAllHouses() {
 
 export async function getHouseById(houseId) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
-    const houseSnap = await getDoc(houseRef);
+    const housesRef = collection(db, HOUSES_COLLECTION);
+    const q = query(housesRef, where('id', '==', Number(houseId)));
+    const snapshot = await getDocs(q);
     
-    if (houseSnap.exists()) {
-      return { id: houseSnap.id, ...houseSnap.data() };
+    if (snapshot.docs.length > 0) {
+      const doc = snapshot.docs[0];
+      return { docId: doc.id, ...doc.data() };
     } else {
       throw new Error('House not found');
     }
@@ -52,8 +78,10 @@ export async function getHouseById(houseId) {
 
 export async function createHouse(name, capacity = 4) {
   try {
+    const id = await getNextId('houses');
     const housesRef = collection(db, HOUSES_COLLECTION);
     const newHouse = {
+      id,
       name,
       capacity,
       prices: {},
@@ -61,8 +89,8 @@ export async function createHouse(name, capacity = 4) {
       updatedAt: serverTimestamp()
     };
     
-    const docRef = await addDoc(housesRef, newHouse);
-    return { id: docRef.id, name, capacity, prices: {} };
+    await addDoc(housesRef, newHouse);
+    return newHouse;
   } catch (error) {
     console.error('Error creating house:', error);
     throw error;
@@ -71,7 +99,8 @@ export async function createHouse(name, capacity = 4) {
 
 export async function updateHouse(houseId, data) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
+    const house = await getHouseById(houseId);
+    const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
     const updateData = {
       ...data,
       updatedAt: serverTimestamp()
@@ -79,9 +108,8 @@ export async function updateHouse(houseId, data) {
     
     await updateDoc(houseRef, updateData);
     
-    // Get updated house data
     const updatedSnap = await getDoc(houseRef);
-    return { id: houseId, ...updatedSnap.data() };
+    return { ...updatedSnap.data() };
   } catch (error) {
     console.error('Error updating house:', error);
     throw error;
@@ -90,15 +118,9 @@ export async function updateHouse(houseId, data) {
 
 export async function updateHouseBooking(houseId, date, price, status) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
-    const houseSnap = await getDoc(houseRef);
-    
-    if (!houseSnap.exists()) {
-      throw new Error('House not found');
-    }
-    
-    const houseData = houseSnap.data();
-    const prices = houseData.prices || {};
+    const house = await getHouseById(houseId);
+    const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
+    const prices = house.prices || {};
     
     prices[date] = {
       price: price !== undefined ? price : null,
@@ -110,7 +132,7 @@ export async function updateHouseBooking(houseId, date, price, status) {
       updatedAt: serverTimestamp()
     });
     
-    return { id: houseId, ...houseData, prices };
+    return { ...house, prices };
   } catch (error) {
     console.error('Error updating booking:', error);
     throw error;
@@ -119,7 +141,8 @@ export async function updateHouseBooking(houseId, date, price, status) {
 
 export async function deleteHouse(houseId) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
+    const house = await getHouseById(houseId);
+    const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
     await deleteDoc(houseRef);
     return { success: true };
   } catch (error) {
@@ -130,15 +153,9 @@ export async function deleteHouse(houseId) {
 
 export async function applyWeekdayPrices(houseId, startDate, endDate, year, month, mapping) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
-    const houseSnap = await getDoc(houseRef);
-    
-    if (!houseSnap.exists()) {
-      throw new Error('House not found');
-    }
-    
-    const houseData = houseSnap.data();
-    const prices = houseData.prices || {};
+    const house = await getHouseById(houseId);
+    const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
+    const prices = house.prices || {};
     
     let start = startDate ? new Date(startDate) : null;
     let end = endDate ? new Date(endDate) : null;
@@ -169,7 +186,7 @@ export async function applyWeekdayPrices(houseId, startDate, endDate, year, mont
       updatedAt: serverTimestamp()
     });
     
-    return { id: houseId, ...houseData, prices };
+    return { ...house, prices };
   } catch (error) {
     console.error('Error applying weekday prices:', error);
     throw error;
@@ -178,15 +195,9 @@ export async function applyWeekdayPrices(houseId, startDate, endDate, year, mont
 
 export async function applyHolidayPrices(houseId, dates, price) {
   try {
-    const houseRef = doc(db, HOUSES_COLLECTION, houseId);
-    const houseSnap = await getDoc(houseRef);
-    
-    if (!houseSnap.exists()) {
-      throw new Error('House not found');
-    }
-    
-    const houseData = houseSnap.data();
-    const prices = houseData.prices || {};
+    const house = await getHouseById(houseId);
+    const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
+    const prices = house.prices || {};
     
     dates.forEach(dateStr => {
       const existing = prices[dateStr] || {};
@@ -198,7 +209,7 @@ export async function applyHolidayPrices(houseId, dates, price) {
       updatedAt: serverTimestamp()
     });
     
-    return { id: houseId, ...houseData, prices };
+    return { ...house, prices };
   } catch (error) {
     console.error('Error applying holiday prices:', error);
     throw error;
@@ -265,8 +276,10 @@ export async function createUser(username, password, role = 'agent') {
       throw new Error('Username already exists');
     }
     
+    const id = await getNextId('users');
     const usersRef = collection(db, USERS_COLLECTION);
     const newUser = {
+      id,
       username,
       password, // ⚠️ หมายเหตุ: ในการใช้จริง ควร hash password
       role,
@@ -274,8 +287,8 @@ export async function createUser(username, password, role = 'agent') {
       updatedAt: serverTimestamp()
     };
     
-    const docRef = await addDoc(usersRef, newUser);
-    return { id: docRef.id, username, role };
+    await addDoc(usersRef, newUser);
+    return { id, username, role };
   } catch (error) {
     console.error('Error creating user:', error);
     throw error;
@@ -284,7 +297,8 @@ export async function createUser(username, password, role = 'agent') {
 
 export async function updateUser(userId, data) {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
+    const user = await getUserById(userId);
+    const userRef = doc(db, USERS_COLLECTION, user.docId);
     const updateData = {
       ...data,
       updatedAt: serverTimestamp()
@@ -293,7 +307,7 @@ export async function updateUser(userId, data) {
     await updateDoc(userRef, updateData);
     
     const updatedSnap = await getDoc(userRef);
-    return { id: userId, ...updatedSnap.data() };
+    return { ...updatedSnap.data() };
   } catch (error) {
     console.error('Error updating user:', error);
     throw error;
@@ -302,7 +316,8 @@ export async function updateUser(userId, data) {
 
 export async function deleteUser(userId) {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
+    const user = await getUserById(userId);
+    const userRef = doc(db, USERS_COLLECTION, user.docId);
     await deleteDoc(userRef);
     return { success: true };
   } catch (error) {
@@ -313,11 +328,12 @@ export async function deleteUser(userId) {
 
 export async function updateUserRole(userId, role) {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
+    const user = await getUserById(userId);
+    const userRef = doc(db, USERS_COLLECTION, user.docId);
     await updateDoc(userRef, { role });
     
     const updatedSnap = await getDoc(userRef);
-    return { id: userId, ...updatedSnap.data() };
+    return { ...updatedSnap.data() };
   } catch (error) {
     console.error('Error updating user role:', error);
     throw error;
@@ -337,8 +353,8 @@ export async function createToken(tokenString, userId, role) {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
     };
     
-    const docRef = await addDoc(tokensRef, tokenData);
-    return { id: docRef.id, ...tokenData };
+    await addDoc(tokensRef, tokenData);
+    return { ...tokenData };
   } catch (error) {
     console.error('Error creating token:', error);
     throw error;
