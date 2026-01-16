@@ -1,39 +1,13 @@
 import { useEffect, useState } from 'react'
-import Header from '../components/Header'
+import Link from 'next/link'
 import HouseCard from '../components/HouseCard'
-import WeeklyModal from '../components/WeeklyModal'
-import LoginPage from '../components/LoginPage'
-import RegisterPage from '../components/RegisterPage'
-import AdminPanel from '../components/AdminPanel'
-import AddHouseModal from '../components/AddHouseModal'
-import EditHouseModal from '../components/EditHouseModal'
 import * as api from '../lib/api'
 
 export default function Home() {
   const [houses, setHouses] = useState([])
   const [search, setSearch] = useState('')
-  const [weeklyOpen, setWeeklyOpen] = useState(false)
-  const [adminPanelOpen, setAdminPanelOpen] = useState(false)
-  const [addHouseModalOpen, setAddHouseModalOpen] = useState(false)
-  const [editHouseModalOpen, setEditHouseModalOpen] = useState(false)
-  const [editingHouse, setEditingHouse] = useState(null)
-  
-  // Auth states
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userRole, setUserRole] = useState(null) // 'admin' or 'agent'
-  const [username, setUsername] = useState('')
-  const [authPage, setAuthPage] = useState('login') // 'login' or 'register'
 
   useEffect(() => { 
-    // Check if already logged in
-    const token = localStorage.getItem('adminToken')
-    const role = localStorage.getItem('userRole')
-    const storedUsername = localStorage.getItem('username')
-    if (token && role) {
-      setIsLoggedIn(true)
-      setUserRole(role)
-      setUsername(storedUsername || '')
-    }
     load() 
   }, [])
   
@@ -51,48 +25,6 @@ export default function Home() {
     }
   }
 
-  function handleLoginSuccess(role) {
-    setIsLoggedIn(true)
-    setUserRole(role)
-    setUsername(localStorage.getItem('username') || '')
-  }
-
-  function handleLogout() {
-    localStorage.removeItem('adminToken')
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('username')
-    setIsLoggedIn(false)
-    setUserRole(null)
-    setUsername('')
-  }
-
-  async function addHouse() {
-    if (userRole !== 'admin') {
-      alert('เฉพาะ Admin เท่านั้นที่สามารถเพิ่มบ้านได้')
-      return
-    }
-    setAddHouseModalOpen(true)
-  }
-
-  function handleHouseAdded(newHouse) {
-    if (!newHouse || !newHouse.id) return
-    setHouses(prev => [...prev, { ...newHouse, name: newHouse.name || 'Unnamed', currentDate: new Date() }])
-  }
-
-  function openEditHouse(index) {
-    if (userRole !== 'admin') {
-      alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขบ้านได้')
-      return
-    }
-    setEditingHouse(houses[index])
-    setEditHouseModalOpen(true)
-  }
-
-  function handleHouseUpdated(updated) {
-    setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: h.currentDate } : h))
-  }
-
-  // handlers
   function changeMonth(index, diff) {
     setHouses(prev => {
       const copy = prev.map(h => ({ ...h }));
@@ -104,104 +36,62 @@ export default function Home() {
     })
   }
 
-  async function deleteHouse(index) {
-    if (userRole !== 'admin') {
-      alert('เฉพาะ Admin เท่านั้นที่สามารถลบบ้านได้')
-      return
-    }
-    const house = houses[index];
-    if (!house) return;
-    if (!confirm(`ลบบ้าน "${house.name}" ใช่หรือไม่?`)) return;
-    try {
-      await api.deleteHouse(house.id);
-      setHouses(prev => prev.filter((_,i) => i !== index));
-    } catch (err) {
-      console.error('delete failed', err);
-      alert('ลบบ้านล้มเหลว');
-    }
-  }
-
-  function openWeekly(index) {
-    if (userRole !== 'admin') {
-      alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
-      return
-    }
-    setWeeklyOpen(true)
-  }
-
-  function openWeeklyGlobal(){
-    if (userRole !== 'admin') {
-      alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
-      return
-    }
-    setWeeklyOpen(true)
-  }
-
-  // Show login/register if not logged in
-  if (!isLoggedIn) {
-    if (authPage === 'register') {
-      return <RegisterPage 
-        onRegisterSuccess={() => setAuthPage('login')} 
-        onGoToLogin={() => setAuthPage('login')} 
-      />
-    }
-    return <LoginPage 
-      onLoginSuccess={handleLoginSuccess} 
-      onGoToRegister={() => setAuthPage('register')} 
-    />
-  }
-
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        <Header 
-          onAdd={addHouse} 
-          onRefresh={load} 
-          onSearch={setSearch} 
-          onOpenWeekly={openWeeklyGlobal}
-          onLogout={handleLogout}
-          onOpenAdmin={() => setAdminPanelOpen(true)}
-          userRole={userRole}
-          username={username}
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100">
+      {/* Header สำหรับ Agent */}
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📅</span>
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">ปฏิทิน BaanPoolVilla</h1>
+              <p className="text-sm text-gray-500">ดูราคาและสถานะห้องพัก</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="ค้นหาบ้าน..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={load}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition"
+            >
+              รีเฟรช
+            </button>
+            <Link href="/admin" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">
+              Admin
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && (
+            <div className="text-center text-gray-500 col-span-full py-12">
+              <p className="text-lg">ยังไม่มีบ้านในระบบ</p>
+            </div>
+          )}
           {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).map((h, i) => (
             <HouseCard
               key={h.id}
               index={i}
               house={h}
               onChangeMonth={(diff) => changeMonth(i, diff)}
-              onDelete={userRole === 'admin' ? () => deleteHouse(i) : null}
-              onOpenWeekly={userRole === 'admin' ? () => openWeekly(i) : null}
-              onOpenEdit={userRole === 'admin' ? () => openEditHouse(i) : null}
-              onUpdated={userRole === 'admin' ? async (idx, updatedHouse) => {
-                setHouses(prev => {
-                  const copy = prev.map(hh => ({ ...hh }));
-                  const curDate = copy[idx]?.currentDate || new Date();
-                  copy[idx] = { ...updatedHouse, currentDate: curDate };
-                  return copy;
-                })
-              } : null}
-              userRole={userRole}
+              onDelete={null}
+              onOpenWeekly={null}
+              onOpenEdit={null}
+              onUpdated={null}
+              userRole="agent"
             />
           ))}
         </div>
-        {weeklyOpen && <WeeklyModal houses={houses} onClose={() => setWeeklyOpen(false)} onSaved={(updated)=>{
-          setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: (prev.find(p=>p.id===updated.id)?.currentDate || new Date()) } : h))
-        }} />}
-        {adminPanelOpen && <AdminPanel onClose={() => setAdminPanelOpen(false)} />}
-        <AddHouseModal 
-          isOpen={addHouseModalOpen} 
-          onClose={() => setAddHouseModalOpen(false)} 
-          onHouseAdded={handleHouseAdded}
-        />
-        <EditHouseModal 
-          isOpen={editHouseModalOpen} 
-          onClose={() => setEditHouseModalOpen(false)} 
-          house={editingHouse}
-          onHouseUpdated={handleHouseUpdated}
-        />
       </div>
     </div>
   )
