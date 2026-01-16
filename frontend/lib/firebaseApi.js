@@ -238,11 +238,13 @@ export async function getAllUsers() {
 
 export async function getUserById(userId) {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
-    const userSnap = await getDoc(userRef);
+    const usersRef = collection(db, USERS_COLLECTION);
+    const q = query(usersRef, where('id', '==', Number(userId)));
+    const snapshot = await getDocs(q);
     
-    if (userSnap.exists()) {
-      return { id: userSnap.id, ...userSnap.data() };
+    if (snapshot.docs.length > 0) {
+      const doc = snapshot.docs[0];
+      return { docId: doc.id, ...doc.data() };
     } else {
       throw new Error('User not found');
     }

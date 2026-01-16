@@ -20,7 +20,7 @@ export async function authRequired(req, res, next) {
 }
 
 export async function adminRequired(req, res, next) {
-  return authRequired(req, res, () => {
+  await authRequired(req, res, () => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'forbidden' });
     }
