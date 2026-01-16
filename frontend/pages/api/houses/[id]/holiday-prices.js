@@ -1,4 +1,4 @@
-import { readDB, writeDB } from '@/lib/db';
+import { applyHolidayPrices } from '@/lib/firebaseApi';
 import { runMiddleware, authRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   await runMiddleware(req, res, authRequired);
 
   const { id } = req.query;
-  const houseId = Number(id);
+  const houseId = id;
   const { dates, price } = req.body;
   
   if (!dates || !Array.isArray(dates) || dates.length === 0) {
@@ -19,17 +19,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'price required' });
   }
 
-  const db = readDB();
-  const house = db.houses.find(h => h.id === houseId);
-  if (!house) return res.status(404).json({ error: 'house not found' });
-
-  house.prices = house.prices || {};
-
-  for (const dateStr of dates) {
-    const existing = house.prices[dateStr] || {};
-    house.prices[dateStr] = { ...existing, price: Number(price), isHoliday: true };
+  try {
+    const updatedHouse = await applyHolidayPrices(houseId, dates, price);
+    res.json(updatedHouse);
+  } catch (error) {
+    if (error.message === 'House not found') {
+      return res.status(404).json({ error: 'house not found' });
+    }
+    res.status(500).json({ error: error.message });
   }
-
-  writeDB(db);
-  res.json(house);
 }

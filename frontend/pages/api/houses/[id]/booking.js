@@ -1,4 +1,4 @@
-import { readDB, writeDB } from '@/lib/db';
+import { updateHouseBooking } from '@/lib/firebaseApi';
 import { runMiddleware, authRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
@@ -9,19 +9,18 @@ export default async function handler(req, res) {
   await runMiddleware(req, res, authRequired);
 
   const { id } = req.query;
-  const houseId = Number(id);
+  const houseId = id;
   const { date, price, status } = req.body;
   
   if (!date) return res.status(400).json({ error: 'date required' });
 
-  const db = readDB();
-  const house = db.houses.find(h => h.id === houseId);
-  if (!house) return res.status(404).json({ error: 'house not found' });
-
-  house.prices[date] = { 
-    price: price !== undefined ? price : null, 
-    status: status || 'available' 
-  };
-  writeDB(db);
-  res.json(house);
+  try {
+    const updatedHouse = await updateHouseBooking(houseId, date, price, status);
+    res.json(updatedHouse);
+  } catch (error) {
+    if (error.message === 'House not found') {
+      return res.status(404).json({ error: 'house not found' });
+    }
+    res.status(500).json({ error: error.message });
+  }
 }

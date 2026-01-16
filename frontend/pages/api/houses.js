@@ -1,10 +1,14 @@
-import { readDB, writeDB } from '@/lib/db';
+import { getAllHouses, createHouse } from '@/lib/firebaseApi';
 import { runMiddleware, authRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const db = readDB();
-    res.status(200).json(db.houses);
+    try {
+      const houses = await getAllHouses();
+      res.status(200).json(houses);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   } 
   else if (req.method === 'POST') {
     // Add new house - requires auth
@@ -19,17 +23,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'House name is required' });
     }
 
-    const db = readDB();
-    const newHouse = {
-      id: db.nextHouseId++,
-      name,
-      capacity: capacity || 4,
-      prices: {}
-    };
-    db.houses.push(newHouse);
-    writeDB(db);
-
-    res.status(201).json(newHouse);
+    try {
+      const newHouse = await createHouse(name, capacity || 4);
+      res.status(201).json(newHouse);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
   else {
     res.status(405).json({ error: 'Method not allowed' });
