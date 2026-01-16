@@ -1,21 +1,26 @@
-import { getTokenData } from './db';
+import { getTokenData } from './firebaseApi';
 
-export function authRequired(req, res, next) {
+export async function authRequired(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   const token = authHeader.substring(7);
-  const tokenData = getTokenData(token);
-  if (!tokenData) {
+  
+  try {
+    const tokenData = await getTokenData(token);
+    if (!tokenData) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    req.user = tokenData;
+    next();
+  } catch (error) {
     return res.status(401).json({ error: 'unauthorized' });
   }
-  req.user = tokenData;
-  next();
 }
 
-export function adminRequired(req, res, next) {
-  authRequired(req, res, () => {
+export async function adminRequired(req, res, next) {
+  return authRequired(req, res, () => {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'forbidden' });
     }

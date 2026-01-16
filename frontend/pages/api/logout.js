@@ -1,6 +1,6 @@
-import { deleteToken } from '@/lib/db';
+import { deleteToken } from '@/lib/firebaseApi';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -8,7 +8,11 @@ export default function handler(req, res) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    deleteToken(token);
+    try {
+      await deleteToken(token);
+    } catch (error) {
+      console.error('Error deleting token:', error);
+    }
   }
 
   res.json({ success: true });

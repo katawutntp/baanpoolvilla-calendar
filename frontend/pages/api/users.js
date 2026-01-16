@@ -1,4 +1,4 @@
-import { readDB } from '@/lib/db';
+import { getAllUsers } from '@/lib/firebaseApi';
 import { runMiddleware, adminRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
@@ -8,12 +8,16 @@ export default async function handler(req, res) {
 
   await runMiddleware(req, res, adminRequired);
 
-  const db = readDB();
-  const users = db.users.map(u => ({
-    id: u.id,
-    username: u.username,
-    role: u.role
-  }));
+  try {
+    const users = await getAllUsers();
+    const sanitizedUsers = users.map(u => ({
+      id: u.id,
+      username: u.username,
+      role: u.role
+    }));
 
-  res.json(users);
+    res.json(sanitizedUsers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }

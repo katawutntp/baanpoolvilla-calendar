@@ -1,4 +1,4 @@
-import { readDB, writeDB } from '@/lib/db';
+import { getUserById, updateUserRole } from '@/lib/firebaseApi';
 import { runMiddleware, adminRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
@@ -13,22 +13,23 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
-  const userId = Number(id);
+  const userId = id;
   const { role } = req.body;
 
   if (!['admin', 'agent'].includes(role)) {
     return res.status(400).json({ error: 'Invalid role' });
   }
 
-  const db = readDB();
-  const user = db.users.find(u => u.id === userId);
-  
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+  try {
+    const user = await getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const updatedUser = await updateUserRole(userId, role);
+    res.json({ success: true, user: { id: updatedUser.id, username: updatedUser.username, role: updatedUser.role } });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  user.role = role;
-  writeDB(db);
-
-  res.json({ success: true, user: { id: user.id, username: user.username, role: user.role } });
 }

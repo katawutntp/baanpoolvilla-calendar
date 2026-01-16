@@ -1,4 +1,4 @@
-import { readDB, writeDB, deleteToken } from '@/lib/db';
+import { getUserById, deleteUser, getAllUsers } from '@/lib/firebaseApi';
 import { runMiddleware, adminRequired } from '@/lib/middleware';
 
 export default async function handler(req, res) {
@@ -13,33 +13,27 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query;
-  const userId = Number(id);
+  const userId = id;
 
-  const db = readDB();
-  const userIndex = db.users.findIndex(u => u.id === userId);
-  
-  if (userIndex === -1) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-
-  // Don't allow deleting the last admin
-  const user = db.users[userIndex];
-  if (user.role === 'admin') {
-    const adminCount = db.users.filter(u => u.role === 'admin').length;
-    if (adminCount <= 1) {
-      return res.status(400).json({ error: 'Cannot delete the last admin' });
+  try {
+    const user = await getUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-  }
 
-  // Remove user's tokens
-  Object.keys(db.tokens).forEach(token => {
-    if (db.tokens[token].userId === userId) {
-      delete db.tokens[token];
+    // Don't allow deleting the last admin
+    if (user.role === 'admin') {
+      const allUsers = await getAllUsers();
+      const adminCount = allUsers.filter(u => u.role === 'admin').length;
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: 'Cannot delete the last admin' });
+      }
     }
-  });
 
-  db.users.splice(userIndex, 1);
-  writeDB(db);
-
-  res.json({ success: true });
+    await deleteUser(userId);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
