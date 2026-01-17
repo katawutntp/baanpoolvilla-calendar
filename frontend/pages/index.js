@@ -6,12 +6,14 @@ import * as api from '../lib/api'
 export default function Home() {
   const [houses, setHouses] = useState([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => { 
     load() 
   }, [])
   
   async function load() {
+    setLoading(true)
     try {
       const data = await api.getHouses()
       if (Array.isArray(data)) {
@@ -22,6 +24,8 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to load houses:', err)
       setHouses([])
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -73,7 +77,7 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && (
+          {!loading && houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && (
             <div className="text-center text-gray-500 col-span-full py-12">
               <p className="text-lg">ยังไม่มีบ้านในระบบ</p>
             </div>
@@ -93,6 +97,15 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" aria-label="กำลังโหลดปฏิทิน" />
+            <p className="text-gray-700 font-medium">กำลังโหลดปฏิทิน...</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
