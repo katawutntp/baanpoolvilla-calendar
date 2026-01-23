@@ -129,7 +129,41 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         return
       }
 
-      // ส่งข้อมูลไปยัง API
+      // หา unique house names จาก bookings
+      const uniqueHouses = [...new Set(bookings.map(b => b.houseName))].filter(Boolean)
+      
+      // ดึงรายการบ้านที่มีอยู่แล้ว
+      const existingHousesRes = await fetch('/api/houses')
+      const existingHouses = await existingHousesRes.json()
+      const existingHouseNames = Array.isArray(existingHouses) 
+        ? existingHouses.map(h => h.name.toLowerCase()) 
+        : []
+      
+      // สร้างบ้านใหม่สำหรับบ้านที่ยังไม่มี
+      let housesCreated = 0
+      for (const houseName of uniqueHouses) {
+        if (!existingHouseNames.includes(houseName.toLowerCase())) {
+          try {
+            const createRes = await fetch('/api/houses', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                name: houseName,
+                maxPax: 10,
+                weekdayPrices: {},
+                holidayPrices: {}
+              })
+            })
+            if (createRes.ok) {
+              housesCreated++
+            }
+          } catch (err) {
+            console.error('Failed to create house:', houseName, err)
+          }
+        }
+      }
+
+      // ส่งข้อมูล bookings ไปยัง API
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -140,7 +174,11 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         throw new Error('ไม่สามารถบันทึกข้อมูลได้')
       }
 
-      alert(`นำเข้าข้อมูลสำเร็จ ${bookings.length} รายการ`)
+      let message = `นำเข้าข้อมูลสำเร็จ ${bookings.length} รายการ`
+      if (housesCreated > 0) {
+        message += `\nสร้างบ้านใหม่ ${housesCreated} หลัง`
+      }
+      alert(message)
       onImportSuccess && onImportSuccess()
       onClose()
     } catch (err) {

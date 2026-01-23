@@ -1,16 +1,31 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import * as api from '../lib/api'
 import CalendarView from '../components/CalendarView'
 import ImportExcelModal from '../components/ImportExcelModal'
+import LoginPage from '../components/LoginPage'
 
 export default function CalendarPage() {
   const [houses, setHouses] = useState([])
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [showImportModal, setShowImportModal] = useState(false)
+  
+  // Auth states - Admin only
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userRole, setUserRole] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
+    // Check if user is logged in as admin
+    const token = localStorage.getItem('adminToken')
+    const role = localStorage.getItem('userRole')
+    if (token && role === 'admin') {
+      setIsLoggedIn(true)
+      setUserRole(role)
+    }
+    setCheckingAuth(false)
     loadData()
   }, [])
 
@@ -45,6 +60,49 @@ export default function CalendarPage() {
     }
   }
 
+  function handleLoginSuccess(role) {
+    if (role === 'admin') {
+      setIsLoggedIn(true)
+      setUserRole(role)
+    } else {
+      alert('เฉพาะ Admin เท่านั้นที่สามารถเข้าถึงหน้านี้ได้')
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('userRole')
+    localStorage.removeItem('username')
+    setIsLoggedIn(false)
+    setUserRole(null)
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Show login if not admin
+  if (!isLoggedIn || userRole !== 'admin') {
+    return (
+      <>
+        <Head>
+          <title>เข้าสู่ระบบ - ปฏิทินการจองบ้าน</title>
+        </Head>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="text-center pt-8 mb-4">
+            <p className="text-red-600 font-medium">⚠️ เฉพาะ Admin เท่านั้นที่สามารถเข้าถึงหน้านี้ได้</p>
+          </div>
+          <LoginPage onLoginSuccess={handleLoginSuccess} onGoToRegister={() => {}} />
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <Head>
@@ -66,6 +124,9 @@ export default function CalendarPage() {
                 </div>
               </div>
               <div className="flex gap-3">
+                <Link href="/admin" className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2">
+                  ← กลับ Admin
+                </Link>
                 <button
                   onClick={() => setShowImportModal(true)}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
@@ -93,6 +154,12 @@ export default function CalendarPage() {
                   </svg>
                   รีเฟรช
                 </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                >
+                  ออกจากระบบ
+                </button>
               </div>
             </div>
           </div>
@@ -111,7 +178,13 @@ export default function CalendarPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
               <p className="mt-4 text-gray-600">ยังไม่มีข้อมูลบ้าน</p>
-              <p className="text-sm text-gray-400 mt-2">กรุณาเพิ่มบ้านในระบบก่อนนำเข้าข้อมูลการจอง</p>
+              <p className="text-sm text-gray-400 mt-2">คลิก "นำเข้า Excel" เพื่อเพิ่มบ้านและการจองจากไฟล์ Excel</p>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              >
+                📥 นำเข้า Excel
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
