@@ -47,18 +47,21 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
           const bookings = []
           
           jsonData.forEach(row => {
-            // อ่านข้อมูลจากแต่ละแถว
-            const houseName = row['บ้าน'] || row['บ้านไหว'] || row['ชื่อบ้าน'] || ''
-            const houseCode = row['รหัส'] || row['โค้ด'] || ''
-            const monthYear = row['เดือน'] || row['เดือน/ปี'] || ''
-            const days = row['วันที่'] || row['วัน'] || ''
-            const status = row['สถานะ'] || 'ดีลล้วง'
+            // อ่านข้อมูลจากแต่ละแถว - รองรับหลายชื่อคอลัมน์
+            const houseName = row['เว็บไซต์'] || row['บ้าน'] || row['ชื่อบ้าน'] || row['houseName'] || ''
+            const houseCode = row['ชื่อบ้าน'] || row['รหัส'] || row['โค้ด'] || row['houseCode'] || ''
+            const codeId = row['รหัส'] || row['code'] || ''
+            const monthYear = row['เดือน'] || row['เดือน/ปี'] || row['month'] || ''
+            const days = row['วันที่'] || row['วัน'] || row['day'] || ''
+            const status = row['สถานะ'] || row['status'] || 'ติดจอง'
             
-            if (!houseName || !days || !monthYear) return
+            console.log('Parsing row:', { houseName, houseCode, codeId, monthYear, days, status })
             
-            // แยกวันที่ (อาจเป็น "13 ดีลล้วง", "14, 23, 31", etc.)
+            if (!houseName || !monthYear) return
+            
+            // แยกวันที่ (อาจเป็น "13", "14, 23, 31", etc.)
             const dayNumbers = String(days).match(/\d+/g)
-            if (!dayNumbers) return
+            if (!dayNumbers || dayNumbers.length === 0) return
             
             // แปลงเดือนไทยเป็นตัวเลข
             const monthMap = {
@@ -72,18 +75,21 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
             
             // หาเดือนและปี
             for (const [thaiMonth, monthIndex] of Object.entries(monthMap)) {
-              if (monthYear.includes(thaiMonth)) {
+              if (String(monthYear).includes(thaiMonth)) {
                 month = monthIndex
                 break
               }
             }
             
-            const yearMatch = monthYear.match(/\d{4}/)
+            const yearMatch = String(monthYear).match(/\d{4}/)
             if (yearMatch) {
               year = parseInt(yearMatch[0]) - 543 // แปลง พ.ศ. เป็น ค.ศ.
             }
             
-            if (month === null || !year) return
+            if (month === null || !year) {
+              console.log('Skipping row - invalid month/year:', monthYear)
+              return
+            }
             
             // สร้าง booking สำหรับแต่ละวัน
             dayNumbers.forEach(day => {
@@ -91,7 +97,7 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
               if (dayNum >= 1 && dayNum <= 31) {
                 bookings.push({
                   houseName: houseName.trim(),
-                  houseCode: houseCode.trim(),
+                  houseCode: (houseCode || codeId || '').trim(),
                   date: new Date(year, month, dayNum).toISOString().split('T')[0],
                   status: status.trim(),
                   month: month + 1,
@@ -101,6 +107,7 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
             })
           })
           
+          console.log('Total bookings parsed:', bookings.length)
           resolve(bookings)
         } catch (err) {
           reject(err)
@@ -129,6 +136,13 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         return
       }
 
+      // Get auth token
+      const token = localStorage.getItem('adminToken')
+      const headers = { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+
       // หา unique house names จาก bookings
       const uniqueHouses = [...new Set(bookings.map(b => b.houseName))].filter(Boolean)
       
@@ -146,16 +160,17 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
           try {
             const createRes = await fetch('/api/houses', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers,
               body: JSON.stringify({ 
                 name: houseName,
-                maxPax: 10,
-                weekdayPrices: {},
-                holidayPrices: {}
+                capacity: 10
               })
             })
             if (createRes.ok) {
               housesCreated++
+              console.log('Created house:', houseName)
+            } else {
+              console.error('Failed to create house:', houseName, await createRes.text())
             }
           } catch (err) {
             console.error('Failed to create house:', houseName, err)

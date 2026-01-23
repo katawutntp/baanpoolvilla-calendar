@@ -408,3 +408,92 @@ export async function deleteToken(tokenString) {
     throw error;
   }
 }
+
+// ===== Bookings =====
+
+const BOOKINGS_COLLECTION = 'bookings';
+
+export async function getAllBookings() {
+  try {
+    const bookingsRef = collection(db, BOOKINGS_COLLECTION);
+    const snapshot = await getDocs(bookingsRef);
+    
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting bookings:', error);
+    throw error;
+  }
+}
+
+export async function addBookings(bookingsArray) {
+  try {
+    const bookingsRef = collection(db, BOOKINGS_COLLECTION);
+    const results = [];
+    
+    for (const booking of bookingsArray) {
+      const newBooking = {
+        ...booking,
+        createdAt: serverTimestamp()
+      };
+      const docRef = await addDoc(bookingsRef, newBooking);
+      results.push({ id: docRef.id, ...newBooking });
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error adding bookings:', error);
+    throw error;
+  }
+}
+
+export async function clearAllBookings() {
+  try {
+    const bookingsRef = collection(db, BOOKINGS_COLLECTION);
+    const snapshot = await getDocs(bookingsRef);
+    
+    for (const doc of snapshot.docs) {
+      await deleteDoc(doc.ref);
+    }
+    
+    return { success: true, deleted: snapshot.docs.length };
+  } catch (error) {
+    console.error('Error clearing bookings:', error);
+    throw error;
+  }
+}
+
+export async function createHouseIfNotExists(houseName, capacity = 10) {
+  try {
+    // Check if house already exists
+    const housesRef = collection(db, HOUSES_COLLECTION);
+    const q = query(housesRef, where('name', '==', houseName));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.docs.length > 0) {
+      // House exists, return it
+      return { id: snapshot.docs[0].id, ...snapshot.docs[0].data(), exists: true };
+    }
+    
+    // Create new house
+    const id = await getNextId('houses');
+    const newHouse = {
+      id,
+      name: houseName,
+      capacity,
+      prices: {},
+      weekdayPrices: {},
+      holidayPrices: {},
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+    
+    const docRef = await addDoc(housesRef, newHouse);
+    return { id: docRef.id, ...newHouse, exists: false };
+  } catch (error) {
+    console.error('Error creating house if not exists:', error);
+    throw error;
+  }
+}

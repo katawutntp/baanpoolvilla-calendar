@@ -21,7 +21,13 @@ export default function CalendarView({ house, bookings = [] }) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
     return bookings.some(booking => {
-      if (booking.houseId !== house.id && booking.houseName !== house.name) return false
+      // Match by ID or by name (case-insensitive)
+      const matchById = booking.houseId === house.id
+      const matchByName = booking.houseName && house.name && 
+        booking.houseName.toLowerCase().trim() === house.name.toLowerCase().trim()
+      
+      if (!matchById && !matchByName) return false
+      
       const bookingDate = new Date(booking.date)
       const checkDate = new Date(dateStr)
       return bookingDate.toDateString() === checkDate.toDateString()
@@ -34,7 +40,13 @@ export default function CalendarView({ house, bookings = [] }) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
     return bookings.find(booking => {
-      if (booking.houseId !== house.id && booking.houseName !== house.name) return false
+      // Match by ID or by name (case-insensitive)
+      const matchById = booking.houseId === house.id
+      const matchByName = booking.houseName && house.name && 
+        booking.houseName.toLowerCase().trim() === house.name.toLowerCase().trim()
+      
+      if (!matchById && !matchByName) return false
+      
       const bookingDate = new Date(booking.date)
       const checkDate = new Date(dateStr)
       return bookingDate.toDateString() === checkDate.toDateString()

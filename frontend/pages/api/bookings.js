@@ -1,18 +1,18 @@
-// API สำหรับจัดการข้อมูลการจอง (bookings)
-import { getBookings, saveBookings } from '../../lib/db'
+// API สำหรับจัดการข้อมูลการจอง (bookings) - ใช้ Firebase
+import { getAllBookings, addBookings, clearAllBookings } from '../../lib/firebaseApi'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    // ดึงข้อมูลการจองทั้งหมด
+    // ดึงข้อมูลการจองทั้งหมดจาก Firebase
     try {
-      const bookings = await getBookings()
+      const bookings = await getAllBookings()
       res.status(200).json(bookings || [])
     } catch (error) {
       console.error('Error getting bookings:', error)
       res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' })
     }
   } else if (req.method === 'POST') {
-    // เพิ่มข้อมูลการจองใหม่
+    // เพิ่มข้อมูลการจองใหม่ลง Firebase
     try {
       const { bookings } = req.body
       
@@ -20,35 +20,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' })
       }
 
-      // อ่านข้อมูลเก่า
-      const existingBookings = await getBookings() || []
-      
-      // เพิ่มข้อมูลใหม่
-      const newBookings = bookings.map(b => ({
-        id: Date.now() + Math.random(),
-        ...b,
-        createdAt: new Date().toISOString()
-      }))
-      
-      // รวมข้อมูลเก่าและใหม่
-      const allBookings = [...existingBookings, ...newBookings]
-      
-      // บันทึก
-      await saveBookings(allBookings)
+      // เพิ่มข้อมูลลง Firebase
+      const newBookings = await addBookings(bookings)
       
       res.status(200).json({ 
         success: true, 
         count: newBookings.length,
-        bookings: allBookings 
+        bookings: newBookings 
       })
     } catch (error) {
       console.error('Error saving bookings:', error)
       res.status(500).json({ error: 'ไม่สามารถบันทึกข้อมูลได้' })
     }
   } else if (req.method === 'DELETE') {
-    // ลบข้อมูลการจองทั้งหมด
+    // ลบข้อมูลการจองทั้งหมดจาก Firebase
     try {
-      await saveBookings([])
+      await clearAllBookings()
       res.status(200).json({ success: true })
     } catch (error) {
       console.error('Error deleting bookings:', error)
