@@ -22,7 +22,8 @@ function getInitialDB() {
         { id: 1, username: 'admin', password: 'admin123', role: 'admin' }
       ],
       nextUserId: 2,
-      tokens: {}
+      tokens: {},
+      bookings: []
     };
   }
   return memoryDB;
@@ -65,5 +66,16 @@ export function setToken(token, data) {
 export function deleteToken(token) {
   const db = readDB();
   delete db.tokens[token];
+  writeDB(db);
+}
+
+export function getBookings() {
+  const db = readDB();
+  return db.bookings || [];
+}
+
+export function saveBookings(bookings) {
+  const db = readDB();
+  db.bookings = bookings;
   writeDB(db);
 }
