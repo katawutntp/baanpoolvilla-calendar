@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import * as XLSX from 'xlsx'
+import { createHouseIfNotExists, getAllHouses } from '../lib/firebaseApi'
 
 export default function ImportExcelModal({ onClose, onImportSuccess }) {
   const [file, setFile] = useState(null)
@@ -136,41 +137,30 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         return
       }
 
-      // Get auth token
-      const token = localStorage.getItem('adminToken')
-      const headers = { 
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-
       // หา unique house names จาก bookings
       const uniqueHouses = [...new Set(bookings.map(b => b.houseName))].filter(Boolean)
       
-      // ดึงรายการบ้านที่มีอยู่แล้ว
-      const existingHousesRes = await fetch('/api/houses')
-      const existingHouses = await existingHousesRes.json()
+      // ดึงรายการบ้านที่มีอยู่แล้วจาก Firebase โดยตรง
+      let existingHouses = []
+      try {
+        existingHouses = await getAllHouses()
+      } catch (err) {
+        console.log('Could not get existing houses:', err)
+      }
+      
       const existingHouseNames = Array.isArray(existingHouses) 
-        ? existingHouses.map(h => h.name.toLowerCase()) 
+        ? existingHouses.map(h => (h.name || '').toLowerCase()) 
         : []
       
-      // สร้างบ้านใหม่สำหรับบ้านที่ยังไม่มี
+      // สร้างบ้านใหม่สำหรับบ้านที่ยังไม่มี - ใช้ Firebase โดยตรง
       let housesCreated = 0
       for (const houseName of uniqueHouses) {
         if (!existingHouseNames.includes(houseName.toLowerCase())) {
           try {
-            const createRes = await fetch('/api/houses', {
-              method: 'POST',
-              headers,
-              body: JSON.stringify({ 
-                name: houseName,
-                capacity: 10
-              })
-            })
-            if (createRes.ok) {
+            const result = await createHouseIfNotExists(houseName, 10)
+            if (!result.exists) {
               housesCreated++
-              console.log('Created house:', houseName)
-            } else {
-              console.error('Failed to create house:', houseName, await createRes.text())
+              console.log('Created house via Firebase:', houseName)
             }
           } catch (err) {
             console.error('Failed to create house:', houseName, err)
