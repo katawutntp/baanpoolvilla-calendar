@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import HouseCard from '../components/HouseCard'
 import * as api from '../lib/api'
 
@@ -67,12 +66,6 @@ export default function Home() {
             >
               รีเฟรช
             </button>
-            <Link href="/calendar" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
-              📅 ปฏิทินจอง
-            </Link>
-            <Link href="/admin" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">
-              Admin
-            </Link>
           </div>
         </div>
       </header>

@@ -113,13 +113,13 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
         {/* Day labels */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['อา','จ','อ','พ','พฤ','ศ','ส'].map((d, idx) => (
-            <div key={d} className="text-center font-bold text-sm py-2 rounded-lg text-gray-600 bg-gray-100">
+            <div key={d} className="text-center font-bold text-xs py-1 rounded-lg text-gray-600 bg-gray-100">
               {d}
             </div>
           ))}
         </div>
 
-        {/* Calendar grid */}
+        {/* Calendar grid - Fixed size cells */}
         <div className="grid grid-cols-7 gap-1">
           {matrix.map((week, wi) => (
             week.map((day, di) => {
@@ -138,7 +138,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                 let holidayBorder = '';
                 if (priceObj && priceObj.isHoliday) holidayBorder = 'border-red-500 border-2';
                 
-                const cls = `p-3 text-sm border rounded-lg transition ${weekdayBg} ${holidayBorder} ${isSameDay(day, today) ? 'ring-2 ring-indigo-400 font-bold' : ''} ${inMonth ? 'cursor-pointer hover:shadow-md' : ''}`
+                // Fixed size cell with overflow hidden
+                const cls = `h-12 w-full flex flex-col items-center justify-center text-xs border rounded-lg transition overflow-hidden ${weekdayBg} ${holidayBorder} ${isSameDay(day, today) ? 'ring-2 ring-indigo-400 font-bold' : ''} ${inMonth ? 'cursor-pointer hover:shadow-md' : ''}`
               
               const handleClick = (currentIso) => () => {
                 if (!inMonth) return
@@ -162,17 +163,16 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             // ถ้าไม่ใช่วันของเดือนนี้ให้แสดงเซลล์ว่าง
             if (!inMonth) {
               return (
-                <div key={`${wi}-${di}`} className="p-3 text-sm border rounded-lg bg-white"></div>
+                <div key={`${wi}-${di}`} className="h-12 w-full border rounded-lg bg-white"></div>
               )
             }
             
             return (
               <div key={`${wi}-${di}`} className={cls} onClick={handleClick(iso)}>
-                  <div>{day.getDate()}</div>
-                  <div className={`text-xs ${priceObj?.status === 'closed' ? 'text-gray-200' : priceObj?.status === 'booked' ? 'text-red-100' : 'text-gray-500'}`}>{priceObj && priceObj.price ? `${priceObj.price}` : ''}</div>
-                    <div className="text-xs mt-1">
-                      {/* เปลี่ยนเป็นแค่สีพื้นหลัง ไม่แสดงตัวหนังสือ */}
-                    </div>
+                  <div className="font-medium">{day.getDate()}</div>
+                  <div className={`text-xs truncate max-w-full px-0.5 ${priceObj?.status === 'closed' ? 'text-gray-200' : priceObj?.status === 'booked' ? 'text-red-100' : 'text-gray-500'}`}>
+                    {priceObj && priceObj.price ? `฿${Number(priceObj.price).toLocaleString()}` : ''}
+                  </div>
                 </div>
             )
           })

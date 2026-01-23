@@ -497,3 +497,102 @@ export async function createHouseIfNotExists(houseName, capacity = 10) {
     throw error;
   }
 }
+
+// ===== Import Bookings to House Prices =====
+// ฟังก์ชันนี้จะนำเข้าข้อมูลการจองจาก Excel และอัพเดท house.prices โดยตรง
+export async function importBookingsToHousePrices(bookings) {
+  try {
+    const housesRef = collection(db, HOUSES_COLLECTION);
+    const results = { updated: 0, created: 0, errors: [] };
+    
+    // Group bookings by house name
+    const bookingsByHouse = {};
+    for (const booking of bookings) {
+      const houseName = booking.houseName;
+      if (!houseName) continue;
+      
+      if (!bookingsByHouse[houseName]) {
+        bookingsByHouse[houseName] = [];
+      }
+      bookingsByHouse[houseName].push(booking);
+    }
+    
+    // Process each house
+    for (const [houseName, houseBookings] of Object.entries(bookingsByHouse)) {
+      try {
+        // Find or create house
+        const q = query(housesRef, where('name', '==', houseName));
+        const snapshot = await getDocs(q);
+        
+        let houseRef;
+        let existingPrices = {};
+        
+        if (snapshot.docs.length > 0) {
+          // House exists
+          houseRef = snapshot.docs[0].ref;
+          existingPrices = snapshot.docs[0].data().prices || {};
+        } else {
+          // Create new house
+          const id = await getNextId('houses');
+          const newHouse = {
+            id,
+            name: houseName,
+            capacity: 10,
+            prices: {},
+            weekdayPrices: {},
+            holidayPrices: {},
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          const docRef = await addDoc(housesRef, newHouse);
+          houseRef = docRef;
+          results.created++;
+        }
+        
+        // Update prices with booking status
+        const updatedPrices = { ...existingPrices };
+        
+        for (const booking of houseBookings) {
+          const date = booking.date;
+          if (!date) continue;
+          
+          // แปลงสถานะจากภาษาไทยเป็น status code
+          let status = 'booked';
+          const bookingStatus = (booking.status || '').toLowerCase();
+          if (bookingStatus.includes('ว่าง') || bookingStatus === 'available') {
+            status = 'available';
+          } else if (bookingStatus.includes('ปิด') || bookingStatus === 'closed') {
+            status = 'closed';
+          } else if (bookingStatus.includes('จอง') || bookingStatus.includes('booked')) {
+            status = 'booked';
+          }
+          
+          // Merge with existing price data
+          const existing = updatedPrices[date] || {};
+          updatedPrices[date] = {
+            ...existing,
+            status: status
+          };
+        }
+        
+        // Save updated prices to house document
+        await updateDoc(houseRef, {
+          prices: updatedPrices,
+          updatedAt: serverTimestamp()
+        });
+        
+        results.updated++;
+        console.log(`Updated house "${houseName}" with ${houseBookings.length} bookings`);
+        
+      } catch (houseError) {
+        console.error(`Error processing house "${houseName}":`, houseError);
+        results.errors.push({ houseName, error: houseError.message });
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    console.error('Error importing bookings:', error);
+    throw error;
+  }
+}

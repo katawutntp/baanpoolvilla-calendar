@@ -1,5 +1,5 @@
-// API สำหรับจัดการข้อมูลการจอง (bookings) - ใช้ Firebase
-import { getAllBookings, addBookings, clearAllBookings } from '../../lib/firebaseApi'
+// API สำหรับจัดการข้อมูลการจอง (bookings) - อัพเดทตรงไปที่ house.prices
+import { getAllBookings, addBookings, clearAllBookings, importBookingsToHousePrices } from '../../lib/firebaseApi'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' })
     }
   } else if (req.method === 'POST') {
-    // เพิ่มข้อมูลการจองใหม่ลง Firebase
+    // นำเข้าข้อมูลการจองและอัพเดท house.prices โดยตรง
     try {
       const { bookings } = req.body
       
@@ -20,17 +20,22 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'ข้อมูลไม่ถูกต้อง' })
       }
 
-      // เพิ่มข้อมูลลง Firebase
-      const newBookings = await addBookings(bookings)
+      // อัพเดท house.prices โดยตรง - นี่คือจุดสำคัญ!
+      const result = await importBookingsToHousePrices(bookings)
+      
+      // เก็บ backup ใน bookings collection ด้วย (optional)
+      await addBookings(bookings)
       
       res.status(200).json({ 
         success: true, 
-        count: newBookings.length,
-        bookings: newBookings 
+        count: bookings.length,
+        housesUpdated: result.updated,
+        housesCreated: result.created,
+        errors: result.errors
       })
     } catch (error) {
       console.error('Error saving bookings:', error)
-      res.status(500).json({ error: 'ไม่สามารถบันทึกข้อมูลได้' })
+      res.status(500).json({ error: 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message })
     }
   } else if (req.method === 'DELETE') {
     // ลบข้อมูลการจองทั้งหมดจาก Firebase
