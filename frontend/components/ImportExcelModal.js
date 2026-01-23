@@ -176,17 +176,25 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
       })
 
       if (!response.ok) {
-        throw new Error('ไม่สามารถบันทึกข้อมูลได้')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'ไม่สามารถบันทึกข้อมูลได้')
       }
 
+      const result = await response.json()
+      
       let message = `นำเข้าข้อมูลสำเร็จ ${bookings.length} รายการ`
-      if (housesCreated > 0) {
-        message += `\nสร้างบ้านใหม่ ${housesCreated} หลัง`
+      if (result.housesCreated > 0) {
+        message += `\nสร้างบ้านใหม่ ${result.housesCreated} หลัง`
       }
+      if (result.housesUpdated > 0) {
+        message += `\nอัพเดทบ้าน ${result.housesUpdated} หลัง`
+      }
+      
       alert(message)
       onImportSuccess && onImportSuccess()
       onClose()
     } catch (err) {
+      console.error('Import error:', err)
       setError(err.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล')
     } finally {
       setLoading(false)

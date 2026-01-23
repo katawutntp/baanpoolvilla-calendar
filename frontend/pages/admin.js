@@ -9,6 +9,7 @@ import RegisterPage from '../components/RegisterPage'
 import AdminPanel from '../components/AdminPanel'
 import AddHouseModal from '../components/AddHouseModal'
 import EditHouseModal from '../components/EditHouseModal'
+import ImportExcelModal from '../components/ImportExcelModal'
 import * as api from '../lib/api'
 
 export default function AdminPage() {
@@ -20,6 +21,7 @@ export default function AdminPage() {
   const [addHouseModalOpen, setAddHouseModalOpen] = useState(false)
   const [editHouseModalOpen, setEditHouseModalOpen] = useState(false)
   const [editingHouse, setEditingHouse] = useState(null)
+  const [importExcelOpen, setImportExcelOpen] = useState(false)
   
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -160,9 +162,14 @@ export default function AdminPage() {
           <Link href="/" className="text-blue-600 hover:text-blue-800 flex items-center gap-2">
             ← กลับไปหน้าปฏิทิน (Agent View)
           </Link>
-          <Link href="/calendar" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
-            📅 ปฏิทินจอง
-          </Link>
+          {userRole === 'admin' && (
+            <button 
+              onClick={() => setImportExcelOpen(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
+            >
+              📊 นำเข้า Excel
+            </button>
+          )}
         </div>
         
         <Header 
@@ -213,6 +220,15 @@ export default function AdminPage() {
           house={editingHouse}
           onHouseUpdated={handleHouseUpdated}
         />
+        {importExcelOpen && (
+          <ImportExcelModal 
+            onClose={() => setImportExcelOpen(false)} 
+            onImportSuccess={() => {
+              load()
+              setImportExcelOpen(false)
+            }}
+          />
+        )}
       </div>
     </div>
   )
