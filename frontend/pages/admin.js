@@ -156,9 +156,12 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Back to public link */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Link href="/" className="text-blue-600 hover:text-blue-800 flex items-center gap-2">
             ← กลับไปหน้าปฏิทิน (Agent View)
+          </Link>
+          <Link href="/calendar" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
+            📅 ปฏิทินจอง
           </Link>
         </div>
         
