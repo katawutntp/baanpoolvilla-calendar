@@ -168,26 +168,19 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         }
       }
 
-      // ส่งข้อมูล bookings ไปยัง API
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookings })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'ไม่สามารถบันทึกข้อมูลได้')
-      }
-
-      const result = await response.json()
+      // อัพเดท house.prices โดยตรงจาก client-side (แทนที่จะทำผ่าน API)
+      const { importBookingsToHousePrices } = await import('../lib/firebaseApi')
+      const result = await importBookingsToHousePrices(bookings)
       
       let message = `นำเข้าข้อมูลสำเร็จ ${bookings.length} รายการ`
-      if (result.housesCreated > 0) {
-        message += `\nสร้างบ้านใหม่ ${result.housesCreated} หลัง`
+      if (housesCreated > 0) {
+        message += `\nสร้างบ้านใหม่ ${housesCreated} หลัง`
       }
-      if (result.housesUpdated > 0) {
-        message += `\nอัพเดทบ้าน ${result.housesUpdated} หลัง`
+      if (result.updated > 0) {
+        message += `\nอัพเดทบ้าน ${result.updated} หลัง`
+      }
+      if (result.errors && result.errors.length > 0) {
+        console.error('Import errors:', result.errors)
       }
       
       alert(message)
