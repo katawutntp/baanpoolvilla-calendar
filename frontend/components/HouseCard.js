@@ -285,15 +285,15 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
 
             <div className={`mb-6 p-4 rounded-lg border ${
-              viewStatus === 'available' ? 'bg-blue-50 border-blue-200' : 
-              viewStatus === 'closed' ? 'bg-red-50 border-red-200' : 
-              'bg-green-50 border-green-200'
+              viewStatus === 'available' ? 'bg-green-50 border-green-200' : 
+              viewStatus === 'closed' ? 'bg-gray-100 border-gray-200' : 
+              'bg-red-50 border-red-200'
             }`}>
               <p className="text-sm text-gray-600">📌 สถานะ</p>
               <p className={`text-xl font-bold ${
-                viewStatus === 'available' ? 'text-blue-700' : 
-                viewStatus === 'closed' ? 'text-red-700' : 
-                'text-green-700'
+                viewStatus === 'available' ? 'text-green-700' : 
+                viewStatus === 'closed' ? 'text-gray-700' : 
+                'text-red-700'
               }`}>
                 {viewStatus === 'available' ? 'ว่าง' : viewStatus === 'closed' ? 'ปิด' : 'ติดจอง'}
               </p>
