@@ -59,7 +59,7 @@ export default function Home() {
               onChange={e => setZoneFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
             >
-              <option value="all">โซนทั้งหมด</option>
+              <option value="all">เลือกพื้นที่</option>
               <option value="pattaya">พัทยา</option>
               <option value="sattahip">สัตหีบ</option>
               <option value="bangsaen">บางแสน</option>
