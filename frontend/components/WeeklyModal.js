@@ -1,20 +1,35 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import * as api from '../lib/api'
 
 export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(defaultHouseId || houses?.[0]?.id || null)
   
-  // โหลดราคาล่าสุดจาก localStorage
-  const loadLastPrices = () => {
-    try {
-      const saved = localStorage.getItem('lastWeekdayPrices')
-      return saved ? JSON.parse(saved) : { '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' }
-    } catch {
-      return { '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' }
+  // โหลดราคาจาก house.weekdayPrices ของบ้านที่เลือก
+  const getHousePrices = (houseId) => {
+    const house = houses.find(h => h.id === houseId)
+    if (house && house.weekdayPrices) {
+      return {
+        '0': house.weekdayPrices['0'] !== undefined ? String(house.weekdayPrices['0']) : '',
+        '1': house.weekdayPrices['1'] !== undefined ? String(house.weekdayPrices['1']) : '',
+        '2': house.weekdayPrices['2'] !== undefined ? String(house.weekdayPrices['2']) : '',
+        '3': house.weekdayPrices['3'] !== undefined ? String(house.weekdayPrices['3']) : '',
+        '4': house.weekdayPrices['4'] !== undefined ? String(house.weekdayPrices['4']) : '',
+        '5': house.weekdayPrices['5'] !== undefined ? String(house.weekdayPrices['5']) : '',
+        '6': house.weekdayPrices['6'] !== undefined ? String(house.weekdayPrices['6']) : ''
+      }
     }
+    return { '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' }
   }
   
-  const [weekdayPrices, setWeekdayPrices] = useState(loadLastPrices())
+  const [weekdayPrices, setWeekdayPrices] = useState(() => getHousePrices(defaultHouseId || houses?.[0]?.id))
+  
+  // เมื่อเปลี่ยนบ้าน ให้โหลดราคาของบ้านนั้น
+  useEffect(() => {
+    if (selectedHouseId) {
+      setWeekdayPrices(getHousePrices(selectedHouseId))
+    }
+  }, [selectedHouseId])
+  
   const [holidays, setHolidays] = useState([
     { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateInput: '' },
     { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [], dateInput: '' },
@@ -41,9 +56,6 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
       
       // เรียก weekday-prices เฉพาะเมื่อมีการกรอกราคาวันธรรมดา
       if (hasWeekdayPrice) {
-        // บันทึกราคาล่าสุดลง localStorage
-        localStorage.setItem('lastWeekdayPrices', JSON.stringify(weekdayPrices))
-        
         const weekdayPayload = { startDate, endDate, mapping }
         updated = await api.applyWeekdayPrices(selectedHouseId, weekdayPayload)
       }

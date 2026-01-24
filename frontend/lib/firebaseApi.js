@@ -78,7 +78,7 @@ export async function getHouseById(houseId) {
   }
 }
 
-export async function createHouse(name, capacity = 4) {
+export async function createHouse(name, capacity = 4, zone = '') {
   try {
     const id = await getNextId('houses');
     const housesRef = collection(db, HOUSES_COLLECTION);
@@ -86,6 +86,7 @@ export async function createHouse(name, capacity = 4) {
       id,
       name,
       capacity,
+      zone: zone || '',
       prices: {},
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
