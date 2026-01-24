@@ -23,12 +23,21 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
   
   const [weekdayPrices, setWeekdayPrices] = useState(() => getHousePrices(defaultHouseId || houses?.[0]?.id))
   
-  // เมื่อเปลี่ยนบ้าน ให้โหลดราคาของบ้านนั้น
+  // Sync selectedHouseId when defaultHouseId or houses change
+  useEffect(() => {
+    if (defaultHouseId) {
+      setSelectedHouseId(defaultHouseId)
+    } else if (!selectedHouseId && houses && houses.length > 0) {
+      setSelectedHouseId(houses[0].id)
+    }
+  }, [defaultHouseId, houses])
+
+  // เมื่อเปลี่ยนบ้านหรือเมื่อข้อมูล houses ถูกอัพเดท ให้โหลดราคาของบ้านนั้น
   useEffect(() => {
     if (selectedHouseId) {
       setWeekdayPrices(getHousePrices(selectedHouseId))
     }
-  }, [selectedHouseId])
+  }, [selectedHouseId, houses])
   
   const [holidays, setHolidays] = useState([
     { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateInput: '' },

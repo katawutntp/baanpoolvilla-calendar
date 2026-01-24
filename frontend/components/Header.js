@@ -13,9 +13,10 @@ export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLog
           onChange={e => onZoneFilterChange && onZoneFilterChange(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-200"
         >
-          <option value="all">โซนทั้งหมด</option>
+          <option value="all">เลือกพื้นที่</option>
           <option value="pattaya">พัทยา</option>
           <option value="sattahip">สัตหีบ</option>
+          <option value="bangsaen">บางแสน</option>
         </select>
         <div className="relative">
           <input onChange={e => onSearch && onSearch(e.target.value)} placeholder="ค้นหาบ้าน..." className="pl-3 pr-10 py-2 rounded-md border w-64 text-sm" />

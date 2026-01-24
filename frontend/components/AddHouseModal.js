@@ -82,6 +82,7 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
               <option value="">ไม่ระบุ</option>
               <option value="pattaya">พัทยา</option>
               <option value="sattahip">สัตหีบ</option>
+              <option value="bangsaen">บางแสน</option>
             </select>
           </div>
 

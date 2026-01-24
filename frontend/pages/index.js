@@ -62,6 +62,7 @@ export default function Home() {
               <option value="all">โซนทั้งหมด</option>
               <option value="pattaya">พัทยา</option>
               <option value="sattahip">สัตหีบ</option>
+              <option value="bangsaen">บางแสน</option>
             </select>
             <input
               type="text"
