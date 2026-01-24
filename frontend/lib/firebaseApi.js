@@ -465,7 +465,7 @@ export async function clearAllBookings() {
   }
 }
 
-export async function createHouseIfNotExists(houseName, capacity = 10) {
+export async function createHouseIfNotExists(houseName, capacity = 10, zone = '') {
   try {
     // Check if house already exists
     const housesRef = collection(db, HOUSES_COLLECTION);
@@ -483,6 +483,7 @@ export async function createHouseIfNotExists(houseName, capacity = 10) {
       id,
       name: houseName,
       capacity,
+      zone: zone || '',
       prices: {},
       weekdayPrices: {},
       holidayPrices: {},

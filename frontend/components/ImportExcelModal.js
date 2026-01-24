@@ -55,6 +55,7 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
             const monthYear = row['เดือน'] || row['เดือน/ปี'] || row['month'] || ''
             const days = row['วันที่'] || row['วัน'] || row['day'] || ''
             const status = row['สถานะ'] || row['status'] || 'ติดจอง'
+            const zone = row['โซน'] || row['zone'] || ''
             
             console.log('Parsing row:', { houseName, houseCode, codeId, monthYear, days, status })
             
@@ -101,6 +102,7 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
                   houseCode: (houseCode || codeId || '').trim(),
                   date: new Date(year, month, dayNum).toISOString().split('T')[0],
                   status: status.trim(),
+                  zone: zone.trim(),
                   month: month + 1,
                   year: year
                 })
@@ -157,10 +159,12 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
       for (const houseName of uniqueHouses) {
         if (!existingHouseNames.includes(houseName.toLowerCase())) {
           try {
-            const result = await createHouseIfNotExists(houseName, 10)
+            // หา zone ของบ้านนี้จาก bookings
+            const houseZone = bookings.find(b => b.houseName === houseName)?.zone || ''
+            const result = await createHouseIfNotExists(houseName, 10, houseZone)
             if (!result.exists) {
               housesCreated++
-              console.log('Created house via Firebase:', houseName)
+              console.log('Created house via Firebase:', houseName, 'zone:', houseZone)
             }
           } catch (err) {
             console.error('Failed to create house:', houseName, err)
@@ -219,6 +223,7 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
               <li>• คอลัมน์ "เดือน" = เดือนและปี (เช่น มกราคม 2569)</li>
               <li>• คอลัมน์ "วันที่" = วันที่จอง (เช่น 13, 14, 23)</li>
               <li>• คอลัมน์ "สถานะ" = สถานะการจอง (เช่น ดีลล้วง)</li>
+              <li>• คอลัมน์ "โซน" = โซนบ้านพัก (เช่น pattaya, sattahip)</li>
             </ul>
           </div>
 
