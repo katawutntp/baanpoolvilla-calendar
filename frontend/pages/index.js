@@ -42,7 +42,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100">
       {/* Header สำหรับ Agent */}
-      <header className="bg-white shadow-md">
+      <header className="bg-[#f36734] shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📅</span>

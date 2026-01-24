@@ -111,7 +111,7 @@ export default function CalendarPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
         {/* Header */}
-        <header className="bg-white shadow-md sticky top-0 z-40">
+        <header className="bg-[#f36734] shadow-md sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
