@@ -63,8 +63,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       {/* Header with month and house name */}
-      <div className="bg-gradient-to-r from-[#f36734] to-[#c94b24] text-white p-4">
-        
+     {/* <div className="bg-gradient-to-r from-[#f36734] to-[#c94b24] text-white p-4"> */}
+        <div className="bg-[#f36734] text-white p-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center justify-center w-10 h-10 bg-white bg-opacity-20 rounded-lg">
