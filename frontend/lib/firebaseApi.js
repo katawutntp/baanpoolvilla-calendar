@@ -185,6 +185,7 @@ export async function applyWeekdayPrices(houseId, startDate, endDate, year, mont
     }
     
     await updateDoc(houseRef, {
+      weekdayPrices: { ...mapping },
       prices,
       updatedAt: serverTimestamp()
     });

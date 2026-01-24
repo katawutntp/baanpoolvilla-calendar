@@ -92,6 +92,8 @@ app.post('/api/houses/:id/weekday-prices', authRequired, (req, res) => {
 
   // ensure house.prices exists
   house.prices = house.prices || {};
+  // เก็บ mapping ล่าสุดไว้ใน weekdayPrices เพื่อแสดงซ้ำได้
+  house.weekdayPrices = { ...mapping };
 
   // iterate dates inclusive
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
