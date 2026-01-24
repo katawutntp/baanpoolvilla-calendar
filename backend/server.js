@@ -27,11 +27,11 @@ app.get('/api/houses', (req, res) => {
 
 // Add a house
 app.post('/api/houses', (req, res) => {
-  const { name, capacity } = req.body;
+  const { name, capacity, zone } = req.body;
   if (!name) return res.status(400).json({ error: 'name required' });
 
   const db = readDB();
-  const house = { id: db.nextHouseId++, name, capacity: capacity || 4, prices: {} };
+  const house = { id: db.nextHouseId++, name, capacity: capacity || 4, zone: zone || '', prices: {} };
   db.houses.push(house);
   writeDB(db);
   res.status(201).json(house);
@@ -40,7 +40,7 @@ app.post('/api/houses', (req, res) => {
 // Update house details (name, capacity)
 app.put('/api/houses/:id', (req, res) => {
   const id = Number(req.params.id);
-  const { name, capacity } = req.body;
+  const { name, capacity, zone } = req.body;
 
   const db = readDB();
   const house = db.houses.find(h => h.id === id);
@@ -48,6 +48,7 @@ app.put('/api/houses/:id', (req, res) => {
 
   if (name !== undefined) house.name = name;
   if (capacity !== undefined) house.capacity = capacity;
+  if (zone !== undefined) house.zone = zone;
   writeDB(db);
   res.json(house);
 });
