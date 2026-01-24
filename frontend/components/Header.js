@@ -1,4 +1,4 @@
-export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLogout, onOpenAdmin, userRole, username }) {
+export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLogout, onOpenAdmin, userRole, username, zoneFilter, onZoneFilterChange }) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center gap-4">
@@ -8,6 +8,15 @@ export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLog
           </span>
           ปฏิทิน BaanPoolVilla
         </h1>
+        <select
+          value={zoneFilter || 'all'}
+          onChange={e => onZoneFilterChange && onZoneFilterChange(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="all">โซนทั้งหมด</option>
+          <option value="pattaya">พัทยา</option>
+          <option value="sattahip">สัตหีบ</option>
+        </select>
         <div className="relative">
           <input onChange={e => onSearch && onSearch(e.target.value)} placeholder="ค้นหาบ้าน..." className="pl-3 pr-10 py-2 rounded-md border w-64 text-sm" />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">ค้นหา</div>

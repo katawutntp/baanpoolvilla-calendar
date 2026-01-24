@@ -129,11 +129,11 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
               const iso = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`
               const priceObj = house.prices && house.prices[iso]
               
-              // ถ้าไม่มีราคา ให้เป็นสีเทา ถ้ามีราคา ให้ใช้สีตามวัน
-              let weekdayBg = !priceObj ? 'bg-gray-200 text-gray-600' : dayBgClass(day.getDay(), inMonth)
-                // เพิ่มสีพื้นหลังสำหรับสถานะ closed/booked
-                if (priceObj && priceObj.status === 'closed') weekdayBg = 'bg-gray-600 text-white';
-                if (priceObj && priceObj.status === 'booked') weekdayBg = 'bg-red-600 text-white';
+              // ใช้สีตามวันเสมอ ไม่ว่าจะมีราคาหรือไม่
+              let weekdayBg = dayBgClass(day.getDay(), inMonth)
+              // เปลี่ยนสีเฉพาะเมื่อสถานะ closed/booked
+              if (priceObj && priceObj.status === 'closed') weekdayBg = 'bg-gray-600 text-white';
+              if (priceObj && priceObj.status === 'booked') weekdayBg = 'bg-red-600 text-white';
                 
                 // เพิ่มกรอบสีแดงสำหรับวันหยุดพิเศษ
                 let holidayBorder = '';

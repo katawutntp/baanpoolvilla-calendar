@@ -5,6 +5,7 @@ import * as api from '../lib/api'
 export default function Home() {
   const [houses, setHouses] = useState([])
   const [search, setSearch] = useState('')
+  const [zoneFilter, setZoneFilter] = useState('all')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { 
@@ -53,6 +54,15 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-4">
+            <select
+              value={zoneFilter}
+              onChange={e => setZoneFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+            >
+              <option value="all">โซนทั้งหมด</option>
+              <option value="pattaya">พัทยา</option>
+              <option value="sattahip">สัตหีบ</option>
+            </select>
             <input
               type="text"
               placeholder="ค้นหาบ้าน..."
@@ -73,12 +83,20 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {!loading && houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && (
+          {!loading && houses.filter(h => {
+            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+            return matchSearch && matchZone
+          }).length === 0 && (
             <div className="text-center text-gray-500 col-span-full py-12">
               <p className="text-lg">ยังไม่มีบ้านในระบบ</p>
             </div>
           )}
-          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).map((h, i) => (
+          {houses.filter(h => {
+            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+            return matchSearch && matchZone
+          }).map((h, i) => (
             <HouseCard
               key={h.id}
               index={i}

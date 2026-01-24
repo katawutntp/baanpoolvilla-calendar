@@ -16,7 +16,9 @@ export default function AdminPage() {
   const router = useRouter()
   const [houses, setHouses] = useState([])
   const [search, setSearch] = useState('')
+  const [zoneFilter, setZoneFilter] = useState('all')
   const [weeklyOpen, setWeeklyOpen] = useState(false)
+  const [selectedHouseIdForWeekly, setSelectedHouseIdForWeekly] = useState(null)
   const [adminPanelOpen, setAdminPanelOpen] = useState(false)
   const [addHouseModalOpen, setAddHouseModalOpen] = useState(false)
   const [editHouseModalOpen, setEditHouseModalOpen] = useState(false)
@@ -129,6 +131,10 @@ export default function AdminPage() {
       alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
       return
     }
+    const house = houses[index]
+    if (house) {
+      setSelectedHouseIdForWeekly(house.id)
+    }
     setWeeklyOpen(true)
   }
 
@@ -137,6 +143,7 @@ export default function AdminPage() {
       alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
       return
     }
+    setSelectedHouseIdForWeekly(null)
     setWeeklyOpen(true)
   }
 
@@ -181,10 +188,20 @@ export default function AdminPage() {
           onOpenAdmin={() => setAdminPanelOpen(true)}
           userRole={userRole}
           username={username}
+          zoneFilter={zoneFilter}
+          onZoneFilterChange={setZoneFilter}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
-          {houses.filter(h => (h.name || '').toLowerCase().includes((search || '').toLowerCase())).map((h, i) => (
+          {houses.filter(h => {
+            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+            return matchSearch && matchZone
+          }).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
+          {houses.filter(h => {
+            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+            return matchSearch && matchZone
+          }).map((h, i) => (
             <HouseCard
               key={h.id}
               index={i}
@@ -205,7 +222,7 @@ export default function AdminPage() {
             />
           ))}
         </div>
-        {weeklyOpen && <WeeklyModal houses={houses} onClose={() => setWeeklyOpen(false)} onSaved={(updated)=>{
+        {weeklyOpen && <WeeklyModal houses={houses} defaultHouseId={selectedHouseIdForWeekly} onClose={() => setWeeklyOpen(false)} onSaved={(updated)=>{
           setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: (prev.find(p=>p.id===updated.id)?.currentDate || new Date()) } : h))
         }} />}
         {adminPanelOpen && <AdminPanel onClose={() => setAdminPanelOpen(false)} />}
