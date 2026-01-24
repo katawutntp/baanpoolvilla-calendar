@@ -42,13 +42,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100">
       {/* Header สำหรับ Agent */}
-      <header className="bg-[#f36734] shadow-md">
+      <header className="bg-[#f36734] shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📅</span>
             <div>
-              <h1 className="text-xl font-bold text-gray-800">ปฏิทิน BaanPoolVilla</h1>
-              <p className="text-sm text-gray-500">ดูราคาและสถานะห้องพัก</p>
+              <h1 className="text-xl font-bold text-white">ปฏิทิน BaanPoolVilla</h1>
+              <p className="text-sm text-orange-100">ดูราคาและสถานะห้องพัก</p>
             </div>
           </div>
           
@@ -58,7 +58,7 @@ export default function Home() {
               placeholder="ค้นหาบ้าน..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               onClick={load}

@@ -117,8 +117,8 @@ export default function CalendarPage() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">📅</span>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">ปฏิทินการจองบ้าน</h1>
-                  <p className="text-sm text-gray-500">
+                  <h1 className="text-2xl font-bold text-white">ปฏิทินการจองบ้าน</h1>
+                  <p className="text-sm text-orange-100">
                     {bookings.length} การจอง | {houses.length} บ้าน
                   </p>
                 </div>
