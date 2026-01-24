@@ -239,8 +239,9 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                   className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-md" 
                   onClick={async () => {
                     try {
-                      const payload = { date: selectedDate, price: modalPrice === '' ? null : Number(modalPrice), status: modalStatus }
-                      const updated = await api.updateBooking(house.id, payload)
+                      // ใช้ setManualBooking เพื่อตั้ง manual flag (ไม่ให้ scraper overwrite)
+                      const { setManualBooking } = await import('../lib/syncService')
+                      const updated = await setManualBooking(house.id, selectedDate, modalPrice === '' ? null : Number(modalPrice), modalStatus)
                       setModalOpen(false)
                       if (onUpdated) onUpdated(index, updated)
                     } catch (err) {

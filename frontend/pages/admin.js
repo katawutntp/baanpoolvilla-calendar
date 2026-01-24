@@ -11,6 +11,7 @@ import AddHouseModal from '../components/AddHouseModal'
 import EditHouseModal from '../components/EditHouseModal'
 import ImportExcelModal from '../components/ImportExcelModal'
 import * as api from '../lib/api'
+import { syncBookingsFromGitHub } from '../lib/syncService'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export default function AdminPage() {
   const [editHouseModalOpen, setEditHouseModalOpen] = useState(false)
   const [editingHouse, setEditingHouse] = useState(null)
   const [importExcelOpen, setImportExcelOpen] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [lastSyncTime, setLastSyncTime] = useState(null)
   
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -40,7 +43,14 @@ export default function AdminPage() {
       setUserRole(role)
       setUsername(storedUsername || '')
     }
-    load() 
+    load()
+    
+    // Auto-sync ทุก 30 นาที (ถ้าหน้าเปิดอยู่)
+    const syncInterval = setInterval(() => {
+      handleAutoSync()
+    }, 30 * 60 * 1000) // 30 นาที
+    
+    return () => clearInterval(syncInterval)
   }, [])
   
   async function load() {
@@ -54,6 +64,42 @@ export default function AdminPage() {
     } catch (err) {
       console.error('Failed to load houses:', err)
       setHouses([])
+    }
+  }
+  
+  // Sync ข้อมูลจาก GitHub (scraper)
+  async function handleSync() {
+    if (syncing) return
+    setSyncing(true)
+    try {
+      const result = await syncBookingsFromGitHub()
+      if (result.success) {
+        alert(`✅ Sync สำเร็จ!\n${result.message}`)
+        setLastSyncTime(new Date())
+        await load() // reload houses
+      } else {
+        alert(`❌ Sync ล้มเหลว: ${result.message}`)
+      }
+    } catch (err) {
+      console.error('Sync failed:', err)
+      alert('❌ Sync ล้มเหลว')
+    } finally {
+      setSyncing(false)
+    }
+  }
+  
+  // Auto-sync (ไม่แสดง alert)
+  async function handleAutoSync() {
+    if (syncing) return
+    try {
+      const result = await syncBookingsFromGitHub()
+      if (result.success) {
+        console.log('Auto-sync completed:', result.message)
+        setLastSyncTime(new Date())
+        await load()
+      }
+    } catch (err) {
+      console.error('Auto-sync failed:', err)
     }
   }
 
@@ -169,14 +215,41 @@ export default function AdminPage() {
           <Link href="/" className="text-blue-600 hover:text-blue-800 flex items-center gap-2">
             ← กลับไปหน้าปฏิทิน (Agent View)
           </Link>
-          {userRole === 'admin' && (
-            <button 
-              onClick={() => setImportExcelOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
-            >
-              📊 นำเข้า Excel
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {lastSyncTime && (
+              <span className="text-sm text-gray-500">
+                Last sync: {lastSyncTime.toLocaleTimeString('th-TH')}
+              </span>
+            )}
+            {userRole === 'admin' && (
+              <>
+                <button 
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
+                    syncing 
+                      ? 'bg-gray-400 text-white cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {syncing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      กำลัง Sync...
+                    </>
+                  ) : (
+                    <>🔄 Sync จาก Scraper</>
+                  )}
+                </button>
+                <button 
+                  onClick={() => setImportExcelOpen(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
+                >
+                  📊 นำเข้า Excel
+                </button>
+              </>
+            )}
+          </div>
         </div>
         
         <Header 
