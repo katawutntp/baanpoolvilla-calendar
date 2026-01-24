@@ -129,8 +129,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
               const iso = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`
               const priceObj = house.prices && house.prices[iso]
               
-              // ใช้สีตามวันเสมอ ไม่ว่าจะมีราคาหรือไม่
-              let weekdayBg = dayBgClass(day.getDay(), inMonth)
+              // ใช้สีเทาทั้งหมดเพื่อไม่ให้สับสนกับสีการจอง
+              let weekdayBg = inMonth ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400'
               // เปลี่ยนสีเฉพาะเมื่อสถานะ closed/booked
               if (priceObj && priceObj.status === 'closed') weekdayBg = 'bg-gray-600 text-white';
               if (priceObj && priceObj.status === 'booked') weekdayBg = 'bg-red-600 text-white';
