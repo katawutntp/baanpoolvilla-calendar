@@ -3,7 +3,18 @@ import * as api from '../lib/api'
 
 export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(defaultHouseId || houses?.[0]?.id || null)
-  const [weekdayPrices, setWeekdayPrices] = useState({ '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' })
+  
+  // โหลดราคาล่าสุดจาก localStorage
+  const loadLastPrices = () => {
+    try {
+      const saved = localStorage.getItem('lastWeekdayPrices')
+      return saved ? JSON.parse(saved) : { '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' }
+    } catch {
+      return { '0':'', '1':'', '2':'', '3':'', '4':'', '5':'', '6':'' }
+    }
+  }
+  
+  const [weekdayPrices, setWeekdayPrices] = useState(loadLastPrices())
   const [holidays, setHolidays] = useState([
     { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateInput: '' },
     { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [], dateInput: '' },
@@ -30,6 +41,9 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
       
       // เรียก weekday-prices เฉพาะเมื่อมีการกรอกราคาวันธรรมดา
       if (hasWeekdayPrice) {
+        // บันทึกราคาล่าสุดลง localStorage
+        localStorage.setItem('lastWeekdayPrices', JSON.stringify(weekdayPrices))
+        
         const weekdayPayload = { startDate, endDate, mapping }
         updated = await api.applyWeekdayPrices(selectedHouseId, weekdayPayload)
       }

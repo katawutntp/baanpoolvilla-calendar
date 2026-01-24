@@ -4,6 +4,7 @@ import * as api from '../lib/api'
 export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
   const [name, setName] = useState('')
   const [capacity, setCapacity] = useState('4')
+  const [zone, setZone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -22,11 +23,12 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
     setLoading(true)
     setError('')
     try {
-      const newHouse = await api.addHouse(name, cap)
+      const newHouse = await api.addHouse(name, cap, zone)
       if (newHouse && newHouse.id) {
         onHouseAdded(newHouse)
         setName('')
         setCapacity('4')
+        setZone('')
         onClose()
       } else {
         setError('เพิ่มบ้านล้มเหลว: ' + (newHouse?.error || 'Unknown error'))
@@ -68,6 +70,19 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
               max="100"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">โซนบ้าน</label>
+            <select
+              value={zone}
+              onChange={e => setZone(e.target.value)}
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="">ไม่ระบุ</option>
+              <option value="pattaya">พัทยา</option>
+              <option value="sattahip">สัตหีบ</option>
+            </select>
           </div>
 
           {error && (

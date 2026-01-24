@@ -4,6 +4,7 @@ import * as api from '../lib/api'
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
   const [name, setName] = useState('')
   const [capacity, setCapacity] = useState('4')
+  const [zone, setZone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -11,6 +12,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     if (house) {
       setName(house.name || '')
       setCapacity(String(house.capacity || 4))
+      setZone(house.zone || '')
       setError('')
     }
   }, [house, isOpen])
@@ -30,7 +32,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setLoading(true)
     setError('')
     try {
-      const updated = await api.updateHouse(house.id, { name, capacity: cap })
+      const updated = await api.updateHouse(house.id, { name, capacity: cap, zone })
       if (updated && updated.id) {
         onHouseUpdated(updated)
         onClose()
@@ -74,6 +76,19 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               max="100"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">โซนบ้าน</label>
+            <select
+              value={zone}
+              onChange={e => setZone(e.target.value)}
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="">ไม่ระบุ</option>
+              <option value="pattaya">พัทยา</option>
+              <option value="sattahip">สัตหีบ</option>
+            </select>
           </div>
 
           {error && (
