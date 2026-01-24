@@ -190,7 +190,7 @@ export async function applyWeekdayPrices(houseId, startDate, endDate, year, mont
       updatedAt: serverTimestamp()
     });
     
-    return { ...house, prices };
+    return { ...house, prices, weekdayPrices: { ...mapping } };
   } catch (error) {
     console.error('Error applying weekday prices:', error);
     throw error;
