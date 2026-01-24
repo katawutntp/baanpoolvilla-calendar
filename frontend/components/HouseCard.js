@@ -209,7 +209,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                 <button 
                   type="button" 
                   onClick={()=>setModalStatus('available')} 
-                  className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition ${modalStatus==='available' ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-white border-gray-300 text-gray-600 hover:border-blue-300'}`}
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition ${modalStatus==='available' ? 'bg-blue-100 border-green-400 text-green-700' : 'bg-white border-gray-300 text-gray-600 hover:border-blue-300'}`}
                 >
                   ว่าง
                 </button>
@@ -223,7 +223,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                 <button 
                   type="button" 
                   onClick={()=>setModalStatus('booked')} 
-                  className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition ${modalStatus==='booked' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-white border-gray-300 text-gray-600 hover:border-green-300'}`}
+                  className={`flex-1 px-4 py-2 rounded-lg border-2 font-medium transition ${modalStatus==='booked' ? 'bg-green-100 border-red-400 text-red-700' : 'bg-white border-gray-300 text-gray-600 hover:border-green-300'}`}
                 >
                   ติดจอง
                 </button>
