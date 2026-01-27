@@ -20,6 +20,16 @@ export async function getHouses(){
     return []
   }
 }
+
+export async function updateHousesOrder(orderedIds){
+  const res = await fetch(`${API_BASE}/houses`, { 
+    method:'PUT', 
+    headers:{'Content-Type':'application/json', ...getAuthHeader()}, 
+    body: JSON.stringify({orderedIds}) 
+  })
+  return res.json()
+}
+
 export async function addHouse(name, capacity = 4, zone = ''){
   const res = await fetch(`${API_BASE}/houses`, { 
     method:'POST', 

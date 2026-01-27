@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Header from '../components/Header'
@@ -27,6 +27,10 @@ export default function AdminPage() {
   const [importExcelOpen, setImportExcelOpen] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(null)
+  
+  // Drag and drop states
+  const [draggedIndex, setDraggedIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
   
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -140,19 +144,29 @@ export default function AdminPage() {
     setEditHouseModalOpen(true)
   }
 
+  function openEditHouseById(houseId) {
+    if (userRole !== 'admin') {
+      alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขบ้านได้')
+      return
+    }
+    const house = houses.find(h => h.id === houseId)
+    if (house) {
+      setEditingHouse(house)
+      setEditHouseModalOpen(true)
+    }
+  }
+
   function handleHouseUpdated(updated) {
     setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: h.currentDate } : h))
   }
 
-  function changeMonth(index, diff) {
-    setHouses(prev => {
-      const copy = prev.map(h => ({ ...h }));
-      const h = copy[index];
+  function changeMonthById(houseId, diff) {
+    setHouses(prev => prev.map(h => {
+      if (h.id !== houseId) return h;
       const cur = h.currentDate instanceof Date ? new Date(h.currentDate) : new Date(h.currentDate);
       cur.setMonth(cur.getMonth() + diff);
-      h.currentDate = cur;
-      return copy;
-    })
+      return { ...h, currentDate: cur };
+    }));
   }
 
   async function deleteHouse(index) {
@@ -172,6 +186,23 @@ export default function AdminPage() {
     }
   }
 
+  async function deleteHouseById(houseId) {
+    if (userRole !== 'admin') {
+      alert('เฉพาะ Admin เท่านั้นที่สามารถลบบ้านได้')
+      return
+    }
+    const house = houses.find(h => h.id === houseId);
+    if (!house) return;
+    if (!confirm(`ลบบ้าน "${house.name}" ใช่หรือไม่?`)) return;
+    try {
+      await api.deleteHouse(houseId);
+      setHouses(prev => prev.filter(h => h.id !== houseId));
+    } catch (err) {
+      console.error('delete failed', err);
+      alert('ลบบ้านล้มเหลว');
+    }
+  }
+
   function openWeekly(index) {
     if (userRole !== 'admin') {
       alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
@@ -181,6 +212,15 @@ export default function AdminPage() {
     if (house) {
       setSelectedHouseIdForWeekly(house.id)
     }
+    setWeeklyOpen(true)
+  }
+
+  function openWeeklyById(houseId) {
+    if (userRole !== 'admin') {
+      alert('เฉพาะ Admin เท่านั้นที่สามารถแก้ไขราคาได้')
+      return
+    }
+    setSelectedHouseIdForWeekly(houseId)
     setWeeklyOpen(true)
   }
 
@@ -205,6 +245,71 @@ export default function AdminPage() {
       onLoginSuccess={handleLoginSuccess} 
       onGoToRegister={() => setAuthPage('register')} 
     />
+  }
+
+  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip'];
+  
+  // ตรวจสอบว่ามีการค้นหา/กรองหรือไม่
+  const isFiltering = search.trim() !== '' || zoneFilter !== 'all';
+  
+  const filteredHouses = houses
+    .filter(h => {
+      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+      const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+      return matchSearch && matchZone
+    })
+  // ไม่ sort อีกแล้ว ใช้ลำดับจาก API โดยตรง (sortOrder)
+
+  // Drag and Drop handlers (เฉพาะ admin และไม่ได้กรอง)
+  const canDrag = userRole === 'admin' && !isFiltering;
+  
+  function handleDragStart(e, index) {
+    if (!canDrag) return;
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  
+  function handleDragOver(e, index) {
+    e.preventDefault();
+    if (!canDrag || draggedIndex === null) return;
+    setDragOverIndex(index);
+  }
+  
+  function handleDragLeave() {
+    setDragOverIndex(null);
+  }
+  
+  async function handleDrop(e, dropIndex) {
+    e.preventDefault();
+    if (!canDrag || draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    
+    // Reorder houses locally
+    const newHouses = [...houses];
+    const [draggedHouse] = newHouses.splice(draggedIndex, 1);
+    newHouses.splice(dropIndex, 0, draggedHouse);
+    setHouses(newHouses);
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    
+    // Save new order to API
+    try {
+      const orderedIds = newHouses.map(h => h.id);
+      await api.updateHousesOrder(orderedIds);
+    } catch (err) {
+      console.error('Failed to save order:', err);
+      // Reload on error
+      load();
+    }
+  }
+  
+  function handleDragEnd() {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }
 
   return (
@@ -265,35 +370,44 @@ export default function AdminPage() {
           onZoneFilterChange={setZoneFilter}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {houses.filter(h => {
-            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
-            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-            return matchSearch && matchZone
-          }).length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
-          {houses.filter(h => {
-            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
-            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-            return matchSearch && matchZone
-          }).map((h, i) => (
-            <HouseCard
-              key={h.id}
-              index={i}
-              house={h}
-              onChangeMonth={(diff) => changeMonth(i, diff)}
-              onDelete={userRole === 'admin' ? () => deleteHouse(i) : null}
-              onOpenWeekly={userRole === 'admin' ? () => openWeekly(i) : null}
-              onOpenEdit={userRole === 'admin' ? () => openEditHouse(i) : null}
-              onUpdated={userRole === 'admin' ? async (idx, updatedHouse) => {
-                setHouses(prev => {
-                  const copy = prev.map(hh => ({ ...hh }));
-                  const curDate = copy[idx]?.currentDate || new Date();
-                  copy[idx] = { ...updatedHouse, currentDate: curDate };
-                  return copy;
-                })
-              } : null}
-              userRole={userRole}
-            />
-          ))}
+          {filteredHouses.length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}
+          {filteredHouses.map((h, i) => {
+            // หา index จริงใน houses array
+            const realIndex = houses.findIndex(hh => hh.id === h.id);
+            return (
+              <div
+                key={h.id}
+                draggable={canDrag}
+                onDragStart={(e) => handleDragStart(e, realIndex)}
+                onDragOver={(e) => handleDragOver(e, realIndex)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, realIndex)}
+                onDragEnd={handleDragEnd}
+                className={`${canDrag ? 'cursor-grab active:cursor-grabbing' : ''} ${
+                  dragOverIndex === realIndex ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                } ${draggedIndex === realIndex ? 'opacity-50' : ''} transition-all`}
+              >
+                <HouseCard
+                  index={realIndex}
+                  house={h}
+                  onChangeMonth={(diff) => changeMonthById(h.id, diff)}
+                  onDelete={userRole === 'admin' ? () => deleteHouseById(h.id) : null}
+                  onOpenWeekly={userRole === 'admin' ? () => openWeeklyById(h.id) : null}
+                  onOpenEdit={userRole === 'admin' ? () => openEditHouseById(h.id) : null}
+                  onUpdated={userRole === 'admin' ? async (idx, updatedHouse) => {
+                    setHouses(prev => {
+                      return prev.map(hh => {
+                        if (hh.id !== h.id) return hh;
+                        const curDate = hh.currentDate || new Date();
+                        return { ...updatedHouse, currentDate: curDate };
+                      });
+                    })
+                  } : null}
+                  userRole={userRole}
+                />
+              </div>
+            );
+          })}
         </div>
         {weeklyOpen && <WeeklyModal houses={houses} defaultHouseId={selectedHouseIdForWeekly} onClose={() => setWeeklyOpen(false)} onSaved={(updated)=>{
           setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: (prev.find(p=>p.id===updated.id)?.currentDate || new Date()) } : h))

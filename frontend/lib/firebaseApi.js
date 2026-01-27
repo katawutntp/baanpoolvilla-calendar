@@ -47,15 +47,46 @@ async function getNextId(counterName) {
 export async function getAllHouses() {
   try {
     const housesRef = collection(db, HOUSES_COLLECTION);
-    const q = query(housesRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(housesRef);
     
-    return snapshot.docs.map(doc => ({
+    const houses = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+    
+    // Sort by sortOrder first, then by createdAt
+    houses.sort((a, b) => {
+      const orderA = a.sortOrder !== undefined ? a.sortOrder : 99999;
+      const orderB = b.sortOrder !== undefined ? b.sortOrder : 99999;
+      if (orderA !== orderB) return orderA - orderB;
+      // If same sortOrder, sort by createdAt desc
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA;
+    });
+    
+    return houses;
   } catch (error) {
     console.error('Error getting houses:', error);
+    throw error;
+  }
+}
+
+export async function updateHousesOrder(orderedIds) {
+  try {
+    const promises = orderedIds.map(async (houseId, index) => {
+      const house = await getHouseById(houseId);
+      const houseRef = doc(db, HOUSES_COLLECTION, house.docId);
+      await updateDoc(houseRef, {
+        sortOrder: index,
+        updatedAt: serverTimestamp()
+      });
+    });
+    
+    await Promise.all(promises);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating houses order:', error);
     throw error;
   }
 }

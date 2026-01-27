@@ -29,16 +29,23 @@ export default function Home() {
     }
   }
 
-  function changeMonth(index, diff) {
-    setHouses(prev => {
-      const copy = prev.map(h => ({ ...h }));
-      const h = copy[index];
+  function changeMonthById(houseId, diff) {
+    setHouses(prev => prev.map(h => {
+      if (h.id !== houseId) return h;
       const cur = h.currentDate instanceof Date ? new Date(h.currentDate) : new Date(h.currentDate);
       cur.setMonth(cur.getMonth() + diff);
-      h.currentDate = cur;
-      return copy;
-    })
+      return { ...h, currentDate: cur };
+    }));
   }
+
+  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip'];
+  const filteredHouses = houses
+    .filter(h => {
+      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+      const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
+      return matchSearch && matchZone
+    })
+  // ใช้ลำดับจาก API (sortOrder) ที่ admin ตั้งไว้ ไม่ต้อง sort ใหม่
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100">
@@ -84,25 +91,16 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {!loading && houses.filter(h => {
-            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
-            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-            return matchSearch && matchZone
-          }).length === 0 && (
+          {!loading && filteredHouses.length === 0 && (
             <div className="text-center text-gray-500 col-span-full py-12">
               <p className="text-lg">ยังไม่มีบ้านในระบบ</p>
             </div>
           )}
-          {houses.filter(h => {
-            const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
-            const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-            return matchSearch && matchZone
-          }).map((h, i) => (
+          {filteredHouses.map((h) => (
             <HouseCard
               key={h.id}
-              index={i}
               house={h}
-              onChangeMonth={(diff) => changeMonth(i, diff)}
+              onChangeMonth={(diff) => changeMonthById(h.id, diff)}
               onDelete={null}
               onOpenWeekly={null}
               onOpenEdit={null}
