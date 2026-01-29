@@ -59,6 +59,31 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
       console.error('Failed to copy:', err)
     }
   }
+
+  // ฟังก์ชันแปลง URL ใน text ให้เป็นลิงก์
+  const renderDescriptionWithLinks = (text) => {
+    if (!text) return 'ไม่มีรายละเอียด'
+    
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = text.split(urlRegex)
+    
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={index} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline break-all"
+          >
+            {part}
+          </a>
+        )
+      }
+      return <span key={index}>{part}</span>
+    })
+  }
   
 
   function dayBgClass(dayIndex, inMonth) {
@@ -365,9 +390,9 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                 </button>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[100px] max-h-[300px] overflow-y-auto">
-                <p className="text-gray-700 whitespace-pre-wrap">
-                  {house.description || 'ไม่มีรายละเอียด'}
-                </p>
+                <div className="text-gray-700 whitespace-pre-wrap break-words">
+                  {renderDescriptionWithLinks(house.description)}
+                </div>
               </div>
             </div>
 
