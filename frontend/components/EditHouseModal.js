@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import * as api from '../lib/api'
+import { IconCopy } from './icons'
 
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
   const [name, setName] = useState('')
   const [capacity, setCapacity] = useState('4')
   const [zone, setZone] = useState('')
+  const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [copySuccess, setCopySuccess] = useState(false)
 
   useEffect(() => {
     if (house) {
       setName(house.name || '')
       setCapacity(String(house.capacity || 4))
       setZone(house.zone || '')
+      setDescription(house.description || '')
       setError('')
+      setCopySuccess(false)
     }
   }, [house, isOpen])
 
@@ -32,7 +37,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setLoading(true)
     setError('')
     try {
-      const updated = await api.updateHouse(house.id, { name, capacity: cap, zone })
+      const updated = await api.updateHouse(house.id, { name, capacity: cap, zone, description })
       if (updated && updated.id) {
         onHouseUpdated(updated)
         onClose()
@@ -43,6 +48,16 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
       setError('แก้ไขบ้านล้มเหลว: ' + (err.message || err))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCopyDescription = async () => {
+    try {
+      await navigator.clipboard.writeText(description || '')
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
     }
   }
 
@@ -90,6 +105,28 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               <option value="sattahip">สัตหีบ</option>
               <option value="bangsaen">บางแสน</option>
             </select>
+          </div>
+
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">รายละเอียดบ้าน</label>
+              <button
+                type="button"
+                onClick={handleCopyDescription}
+                className="flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                title="คัดลอกรายละเอียด"
+              >
+                <IconCopy className="w-4 h-4" />
+                {copySuccess ? 'คัดลอกแล้ว!' : 'คัดลอก'}
+              </button>
+            </div>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="กรอกรายละเอียดบ้าน เช่น สิ่งอำนวยความสะดวก กฎการเข้าพัก ฯลฯ"
+              rows="4"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none resize-none"
+            />
           </div>
 
           {error && (

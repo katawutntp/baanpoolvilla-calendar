@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import * as api from '../lib/api'
-import { IconHouse, IconTrash, IconChevronLeft, IconChevronRight } from './icons'
+import { IconHouse, IconTrash, IconChevronLeft, IconChevronRight, IconCopy } from './icons'
 
 function startOfMonth(d) {
   return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -46,6 +46,20 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
   const [viewPrice, setViewPrice] = useState(null)
   const [viewStatus, setViewStatus] = useState('')
   
+  // House details modal state
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
+
+  const handleCopyDescription = async () => {
+    try {
+      await navigator.clipboard.writeText(house.description || '')
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+  
 
   function dayBgClass(dayIndex, inMonth) {
     if (!inMonth) return 'bg-gray-50 text-gray-400'
@@ -77,6 +91,9 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
           </div>
           <div className="flex gap-2">
+            <button onClick={() => setDetailsModalOpen(true)} className="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm font-medium">
+              รายละเอียดบ้าน
+            </button>
             {userRole === 'admin' && onOpenEdit && (
               <button onClick={() => onOpenEdit(index)} className="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm font-medium">
                  แก้ไข
@@ -304,6 +321,63 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
               <button 
                 className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-md" 
                 onClick={() => setViewModalOpen(false)}>
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* House Details Modal */}
+      {detailsModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-[500px] max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">รายละเอียดบ้าน</h2>
+            
+            <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+              <p className="text-sm text-gray-600">🏠 ชื่อบ้าน</p>
+              <p className="text-2xl font-bold text-indigo-700">{house.name}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-gray-600">👥 จำนวนผู้เข้าพัก</p>
+                <p className="text-2xl font-bold text-blue-700">{house.capacity || 4} คน</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <p className="text-sm text-gray-600">📍 โซน</p>
+                <p className="text-xl font-bold text-purple-700">
+                  {house.zone === 'pattaya' ? 'พัทยา' : house.zone === 'sattahip' ? 'สัตหีบ' : house.zone === 'bangsaen' ? 'บางแสน' : 'ไม่ระบุ'}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-medium text-gray-700">📝 รายละเอียด</label>
+                <button
+                  onClick={handleCopyDescription}
+                  className="flex items-center gap-2 px-3 py-1 text-sm bg-indigo-100 hover:bg-indigo-200 rounded-lg transition"
+                  title="คัดลอกรายละเอียด"
+                >
+                  <IconCopy className="w-4 h-4" />
+                  {copySuccess ? 'คัดลอกแล้ว!' : 'คัดลอก'}
+                </button>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[100px] max-h-[300px] overflow-y-auto">
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {house.description || 'ไม่มีรายละเอียด'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t border-gray-200">
+              <button 
+                className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-md" 
+                onClick={() => {
+                  setDetailsModalOpen(false)
+                  setCopySuccess(false)
+                }}>
                 ปิด
               </button>
             </div>
