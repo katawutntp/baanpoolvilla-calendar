@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import * as api from '../lib/api'
-import { IconHouse, IconTrash, IconChevronLeft, IconChevronRight, IconCopy } from './icons'
+import { IconHouse, IconTrash, IconChevronLeft, IconChevronRight, IconCopy, IconSettings, IconEdit } from './icons'
 
 function startOfMonth(d) {
   return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -91,21 +91,21 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setDetailsModalOpen(true)} className="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm font-medium">
+            <button onClick={() => setDetailsModalOpen(true)} className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium">
               รายละเอียดบ้าน
             </button>
             {userRole === 'admin' && onOpenEdit && (
-              <button onClick={() => onOpenEdit(index)} className="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm font-medium">
-                 แก้ไข
+              <button onClick={() => onOpenEdit(index)} className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
+                <IconEdit className="w-5 h-5" />
               </button>
             )}
             {userRole === 'admin' && onOpenWeekly && (
-              <button onClick={() => onOpenWeekly(index)} className="px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm font-medium">
-                ตั้งค่าราคา
+              <button onClick={() => onOpenWeekly(index)} className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="ตั้งค่าราคา">
+                <IconSettings className="w-5 h-5" />
               </button>
             )}
             {userRole === 'admin' && onDelete && (
-              <button onClick={() => onDelete()} className="p-2 hover:bg-red-500 rounded-lg transition">
+              <button onClick={() => onDelete()} className="p-2 hover:bg-red-500 rounded-lg transition" title="ลบ">
                 <IconTrash className="w-5 h-5" />
               </button>
             )}

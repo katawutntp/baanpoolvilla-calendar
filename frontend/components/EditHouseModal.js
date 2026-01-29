@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import * as api from '../lib/api'
+import * as firebaseApi from '../lib/firebaseApi'
 import { IconCopy } from './icons'
 
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
@@ -37,14 +38,20 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setLoading(true)
     setError('')
     try {
-      const updated = await api.updateHouse(house.id, { name, capacity: cap, zone, description })
-      if (updated && updated.id) {
-        onHouseUpdated(updated)
+      // บันทึกลง Firebase
+      const updated = await firebaseApi.updateHouse(house.id, { name, capacity: cap, zone, description })
+      
+      // อัพเดท local API ด้วย (เพื่อ backward compatibility)
+      await api.updateHouse(house.id, { name, capacity: cap, zone, description })
+      
+      if (updated) {
+        onHouseUpdated({ ...house, ...updated })
         onClose()
       } else {
-        setError('แก้ไขบ้านล้มเหลว: ' + (updated?.error || 'Unknown error'))
+        setError('แก้ไขบ้านล้มเหลว')
       }
     } catch (err) {
+      console.error('Error updating house:', err)
       setError('แก้ไขบ้านล้มเหลว: ' + (err.message || err))
     } finally {
       setLoading(false)

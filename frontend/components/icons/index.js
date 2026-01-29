@@ -78,3 +78,19 @@ export function IconCopy(props){
     </svg>
   )
 }
+export function IconSettings(props){
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={"w-5 h-5 " + (props.className||'')}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 1v6m0 6v6m6.364-15.364l-4.243 4.243m-4.242 4.242-4.243 4.243M23 12h-6m-6 0H1m17.364 6.364l-4.243-4.243m-4.242-4.242-4.243-4.243" />
+    </svg>
+  )
+}
+export function IconEdit(props){
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={"w-5 h-5 " + (props.className||'')}>
+      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  )
+}
