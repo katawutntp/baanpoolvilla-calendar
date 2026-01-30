@@ -33,12 +33,12 @@ export async function fetchBookingsFromGitHub() {
 
 /**
  * แปลงข้อมูลจาก scraper format เป็น booking format
- * Input: { "เว็บไซต์", "ชื่อบ้าน", "รหัส", "เดือน", "วันที่", "สถานะ" }
+ * Input: { "ชื่อบ้าน", "รหัส", "เดือน", "วันที่", "สถานะ" }
  * Output: { houseName, houseCode, date, status }
  */
 function parseScraperBooking(row) {
-  const houseName = row['ชื่อบ้าน'] || row['เว็บไซต์'] || '';
-  const houseCode = row['รหัส'] || '';
+  const houseName = row['ชื่อบ้าน'] || row['บ้าน'] || '';
+  const houseCode = row['รหัส'] || row['code'] || '';
   const monthYear = row['เดือน'] || '';
   const day = row['วันที่'];
   const rawStatus = row['สถานะ'] || '';
@@ -111,13 +111,14 @@ export async function syncBookingsFromGitHub() {
     
     console.log(`Parsed ${parsedBookings.length} valid bookings`);
     
-    // 3. Group by house name
+    // 3. Group by house code (fallback to name)
     const bookingsByHouse = {};
     for (const booking of parsedBookings) {
-      if (!bookingsByHouse[booking.houseName]) {
-        bookingsByHouse[booking.houseName] = [];
+      const key = booking.houseCode ? `code:${booking.houseCode}` : `name:${booking.houseName}`;
+      if (!bookingsByHouse[key]) {
+        bookingsByHouse[key] = [];
       }
-      bookingsByHouse[booking.houseName].push(booking);
+      bookingsByHouse[key].push(booking);
     }
     
     // 4. อัปเดตแต่ละบ้านใน Firestore
@@ -125,20 +126,32 @@ export async function syncBookingsFromGitHub() {
     let updatedCount = 0;
     let skippedManual = 0;
     
-    for (const [houseName, bookings] of Object.entries(bookingsByHouse)) {
+    for (const [houseKey, bookings] of Object.entries(bookingsByHouse)) {
       try {
-        // หาบ้านจากชื่อ
-        const q = query(housesRef, where('name', '==', houseName));
-        const snapshot = await getDocs(q);
+        const sample = bookings[0] || {};
+        const bookingCode = (sample.houseCode || '').trim();
+        const bookingName = (sample.houseName || '').trim();
+        let snapshot = null;
+        if (bookingCode) {
+          const byCode = query(housesRef, where('code', '==', bookingCode));
+          snapshot = await getDocs(byCode);
+        }
+        if (!snapshot || snapshot.docs.length === 0) {
+          const byName = query(housesRef, where('name', '==', bookingName));
+          snapshot = await getDocs(byName);
+        }
         
         if (snapshot.docs.length === 0) {
-          console.log(`House not found: ${houseName}`);
+          console.log(`House not found: ${houseKey}`);
           continue;
         }
         
         const houseDoc = snapshot.docs[0];
         const houseRef = doc(db, HOUSES_COLLECTION, houseDoc.id);
         const houseData = houseDoc.data();
+        if (bookingCode && !houseData.code) {
+          await updateDoc(houseRef, { code: bookingCode, updatedAt: serverTimestamp() });
+        }
         const existingPrices = houseData.prices || {};
         
         // 5. Merge bookings - ไม่ overwrite วันที่มี manual: true
@@ -170,10 +183,10 @@ export async function syncBookingsFromGitHub() {
         });
         
         updatedCount++;
-        console.log(`Updated house: ${houseName} with ${bookings.length} bookings`);
+        console.log(`Updated house: ${houseKey} with ${bookings.length} bookings`);
         
       } catch (houseError) {
-        console.error(`Error updating house ${houseName}:`, houseError);
+        console.error(`Error updating house ${houseKey}:`, houseError);
       }
     }
     

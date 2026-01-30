@@ -21,12 +21,15 @@ export default function CalendarView({ house, bookings = [] }) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
     return bookings.some(booking => {
-      // Match by ID or by name (case-insensitive)
+      // Match by house code (preferred), fallback to ID/name for legacy
+      const hasCode = booking.houseCode && house.code
+      const matchByCode = hasCode &&
+        booking.houseCode.toLowerCase().trim() === house.code.toLowerCase().trim()
       const matchById = booking.houseId === house.id
-      const matchByName = booking.houseName && house.name && 
+      const matchByName = !hasCode && booking.houseName && house.name &&
         booking.houseName.toLowerCase().trim() === house.name.toLowerCase().trim()
       
-      if (!matchById && !matchByName) return false
+      if (!matchByCode && !matchById && !matchByName) return false
       
       const bookingDate = new Date(booking.date)
       const checkDate = new Date(dateStr)
@@ -40,12 +43,15 @@ export default function CalendarView({ house, bookings = [] }) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
     return bookings.find(booking => {
-      // Match by ID or by name (case-insensitive)
+      // Match by house code (preferred), fallback to ID/name for legacy
+      const hasCode = booking.houseCode && house.code
+      const matchByCode = hasCode &&
+        booking.houseCode.toLowerCase().trim() === house.code.toLowerCase().trim()
       const matchById = booking.houseId === house.id
-      const matchByName = booking.houseName && house.name && 
+      const matchByName = !hasCode && booking.houseName && house.name &&
         booking.houseName.toLowerCase().trim() === house.name.toLowerCase().trim()
       
-      if (!matchById && !matchByName) return false
+      if (!matchByCode && !matchById && !matchByName) return false
       
       const bookingDate = new Date(booking.date)
       const checkDate = new Date(dateStr)
@@ -97,7 +103,6 @@ export default function CalendarView({ house, bookings = [] }) {
               <div className="text-xs text-red-600 mt-1">จอง</div>
               {bookingInfo && (
                 <div className="hidden group-hover:block absolute z-10 bg-gray-800 text-white text-xs rounded p-2 -top-2 left-full ml-2 whitespace-nowrap shadow-lg">
-                  <div>รหัส: {bookingInfo.houseCode || '-'}</div>
                   <div>สถานะ: {bookingInfo.status || 'จอง'}</div>
                 </div>
               )}

@@ -18,13 +18,13 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: err.message || 'Unauthorized' });
     }
 
-    const { name, capacity, zone } = req.body;
+    const { name, capacity, zone, code } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'House name is required' });
     }
 
     try {
-      const newHouse = await createHouse(name, capacity || 4, zone || '');
+      const newHouse = await createHouse(name, capacity || 4, zone || '', code || '');
       res.status(201).json(newHouse);
     } catch (error) {
       res.status(500).json({ error: error.message });

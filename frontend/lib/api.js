@@ -30,11 +30,11 @@ export async function updateHousesOrder(orderedIds){
   return res.json()
 }
 
-export async function addHouse(name, capacity = 4, zone = '', description = ''){
+export async function addHouse(name, capacity = 4, zone = '', description = '', code = ''){
   const res = await fetch(`${API_BASE}/houses`, { 
     method:'POST', 
     headers:{'Content-Type':'application/json', ...getAuthHeader()}, 
-    body: JSON.stringify({name, capacity, zone, description}) 
+    body: JSON.stringify({name, capacity, zone, description, code}) 
   })
   return res.json()
 }

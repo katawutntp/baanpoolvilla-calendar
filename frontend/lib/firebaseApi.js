@@ -109,13 +109,14 @@ export async function getHouseById(houseId) {
   }
 }
 
-export async function createHouse(name, capacity = 4, zone = '') {
+export async function createHouse(name, capacity = 4, zone = '', code = '') {
   try {
     const id = await getNextId('houses');
     const housesRef = collection(db, HOUSES_COLLECTION);
     const newHouse = {
       id,
       name,
+      code: code || '',
       capacity,
       zone: zone || '',
       prices: {},
@@ -498,16 +499,29 @@ export async function clearAllBookings() {
   }
 }
 
-export async function createHouseIfNotExists(houseName, capacity = 10, zone = '') {
+export async function createHouseIfNotExists(houseName, capacity = 10, zone = '', houseCode = '') {
   try {
-    // Check if house already exists
+    // Check if house already exists (prefer code)
     const housesRef = collection(db, HOUSES_COLLECTION);
-    const q = query(housesRef, where('name', '==', houseName));
-    const snapshot = await getDocs(q);
+    let snapshot = null;
+    if (houseCode) {
+      const byCode = query(housesRef, where('code', '==', houseCode));
+      snapshot = await getDocs(byCode);
+    }
+    if (!snapshot || snapshot.docs.length === 0) {
+      const byName = query(housesRef, where('name', '==', houseName));
+      snapshot = await getDocs(byName);
+    }
     
     if (snapshot.docs.length > 0) {
       // House exists, return it
-      return { id: snapshot.docs[0].id, ...snapshot.docs[0].data(), exists: true };
+      const existing = { id: snapshot.docs[0].id, ...snapshot.docs[0].data(), exists: true };
+      // เติม code ถ้าขาด
+      if (houseCode && !existing.code) {
+        await updateDoc(snapshot.docs[0].ref, { code: houseCode, updatedAt: serverTimestamp() });
+        existing.code = houseCode;
+      }
+      return existing;
     }
     
     // Create new house
@@ -515,6 +529,7 @@ export async function createHouseIfNotExists(houseName, capacity = 10, zone = ''
     const newHouse = {
       id,
       name: houseName,
+      code: houseCode || '',
       capacity,
       zone: zone || '',
       prices: {},
@@ -539,24 +554,37 @@ export async function importBookingsToHousePrices(bookings) {
     const housesRef = collection(db, HOUSES_COLLECTION);
     const results = { updated: 0, created: 0, errors: [] };
     
-    // Group bookings by house name
+    // Group bookings by house code (fallback to name)
     const bookingsByHouse = {};
     for (const booking of bookings) {
-      const houseName = booking.houseName;
-      if (!houseName) continue;
+      const houseCode = (booking.houseCode || '').trim();
+      const houseName = (booking.houseName || '').trim();
+      const key = houseCode ? `code:${houseCode}` : `name:${houseName}`;
+      if (!houseCode && !houseName) continue;
       
-      if (!bookingsByHouse[houseName]) {
-        bookingsByHouse[houseName] = [];
+      if (!bookingsByHouse[key]) {
+        bookingsByHouse[key] = [];
       }
-      bookingsByHouse[houseName].push(booking);
+      bookingsByHouse[key].push(booking);
     }
     
     // Process each house
-    for (const [houseName, houseBookings] of Object.entries(bookingsByHouse)) {
+    for (const [houseKey, houseBookings] of Object.entries(bookingsByHouse)) {
       try {
-        // Find or create house
-        const q = query(housesRef, where('name', '==', houseName));
-        const snapshot = await getDocs(q);
+        // Find or create house (prefer code)
+        const sample = houseBookings[0] || {};
+        const bookingCode = (sample.houseCode || '').trim();
+        const bookingName = (sample.houseName || '').trim();
+        const bookingZone = (sample.zone || '').trim();
+        let snapshot = null;
+        if (bookingCode) {
+          const byCode = query(housesRef, where('code', '==', bookingCode));
+          snapshot = await getDocs(byCode);
+        }
+        if (!snapshot || snapshot.docs.length === 0) {
+          const byName = query(housesRef, where('name', '==', bookingName));
+          snapshot = await getDocs(byName);
+        }
         
         let houseRef;
         let existingPrices = {};
@@ -565,13 +593,18 @@ export async function importBookingsToHousePrices(bookings) {
           // House exists
           houseRef = snapshot.docs[0].ref;
           existingPrices = snapshot.docs[0].data().prices || {};
+          if (bookingCode && !snapshot.docs[0].data().code) {
+            await updateDoc(houseRef, { code: bookingCode, updatedAt: serverTimestamp() });
+          }
         } else {
           // Create new house
           const id = await getNextId('houses');
           const newHouse = {
             id,
-            name: houseName,
+            name: bookingName || bookingCode,
+            code: bookingCode || '',
             capacity: 10,
+            zone: bookingZone || '',
             prices: {},
             weekdayPrices: {},
             holidayPrices: {},
@@ -616,11 +649,11 @@ export async function importBookingsToHousePrices(bookings) {
         });
         
         results.updated++;
-        console.log(`Updated house "${houseName}" with ${houseBookings.length} bookings`);
+        console.log(`Updated house "${houseKey}" with ${houseBookings.length} bookings`);
         
       } catch (houseError) {
-        console.error(`Error processing house "${houseName}":`, houseError);
-        results.errors.push({ houseName, error: houseError.message });
+        console.error(`Error processing house "${houseKey}":`, houseError);
+        results.errors.push({ houseKey, error: houseError.message });
       }
     }
     

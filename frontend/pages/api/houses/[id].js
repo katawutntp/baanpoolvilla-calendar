@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const { date, price, status, name, capacity, zone } = req.body;
+      const { date, price, status, name, capacity, zone, code } = req.body;
       const updateData = {};
 
       // Update house name/capacity/zone
@@ -19,6 +19,9 @@ export default async function handler(req, res) {
       }
       if (zone !== undefined) {
         updateData.zone = zone;
+      }
+      if (code !== undefined) {
+        updateData.code = code;
       }
 
       // Update booking (price/status for a date)

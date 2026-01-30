@@ -5,6 +5,7 @@ import { IconCopy } from './icons'
 
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
   const [name, setName] = useState('')
+  const [code, setCode] = useState('')
   const [capacity, setCapacity] = useState('4')
   const [zone, setZone] = useState('')
   const [description, setDescription] = useState('')
@@ -15,6 +16,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
   useEffect(() => {
     if (house) {
       setName(house.name || '')
+      setCode(house.code || '')
       setCapacity(String(house.capacity || 4))
       setZone(house.zone || '')
       setDescription(house.description || '')
@@ -39,10 +41,10 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setError('')
     try {
       // บันทึกลง Firebase
-      const updated = await firebaseApi.updateHouse(house.id, { name, capacity: cap, zone, description })
+      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, zone, description })
       
       // อัพเดท local API ด้วย (เพื่อ backward compatibility)
-      await api.updateHouse(house.id, { name, capacity: cap, zone, description })
+      await api.updateHouse(house.id, { name, code, capacity: cap, zone, description })
       
       if (updated) {
         onHouseUpdated({ ...house, ...updated })
@@ -83,6 +85,17 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="กรอกชื่อบ้าน"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">รหัสบ้าน (ไม่แสดงในปฏิทิน)</label>
+            <input
+              type="text"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              placeholder="เช่น CITY-743"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
           </div>

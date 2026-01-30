@@ -49,17 +49,17 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
           
           jsonData.forEach(row => {
             // อ่านข้อมูลจากแต่ละแถว - รองรับหลายชื่อคอลัมน์
-            const houseName = row['เว็บไซต์'] || row['บ้าน'] || row['ชื่อบ้าน'] || row['houseName'] || ''
-            const houseCode = row['ชื่อบ้าน'] || row['รหัส'] || row['โค้ด'] || row['houseCode'] || ''
-            const codeId = row['รหัส'] || row['code'] || ''
+            const houseName = row['บ้าน'] || row['ชื่อบ้าน'] || row['houseName'] || ''
+            const houseCode = row['รหัส'] || row['โค้ด'] || row['houseCode'] || row['code'] || ''
             const monthYear = row['เดือน'] || row['เดือน/ปี'] || row['month'] || ''
             const days = row['วันที่'] || row['วัน'] || row['day'] || ''
             const status = row['สถานะ'] || row['status'] || 'ติดจอง'
             const zone = row['โซน'] || row['zone'] || ''
             
-            console.log('Parsing row:', { houseName, houseCode, codeId, monthYear, days, status })
+            console.log('Parsing row:', { houseName, houseCode, monthYear, days, status })
             
-            if (!houseName || !monthYear) return
+            const safeHouseName = (houseName || houseCode || '').trim()
+            if (!safeHouseName || !monthYear) return
             
             // แยกวันที่ (อาจเป็น "13", "14, 23, 31", etc.)
             const dayNumbers = String(days).match(/\d+/g)
@@ -98,8 +98,8 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
               const dayNum = parseInt(day)
               if (dayNum >= 1 && dayNum <= 31) {
                 bookings.push({
-                  houseName: houseName.trim(),
-                  houseCode: (houseCode || codeId || '').trim(),
+                  houseName: safeHouseName,
+                  houseCode: String(houseCode || '').trim(),
                   date: new Date(year, month, dayNum).toISOString().split('T')[0],
                   status: status.trim(),
                   zone: zone.trim(),
@@ -139,8 +139,16 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
         return
       }
 
-      // หา unique house names จาก bookings
-      const uniqueHouses = [...new Set(bookings.map(b => b.houseName))].filter(Boolean)
+      // หา unique houses จาก bookings (ใช้รหัสบ้านเป็นหลัก)
+      const uniqueHouses = Object.values(
+        bookings.reduce((acc, b) => {
+          const key = b.houseCode ? `code:${b.houseCode}` : `name:${b.houseName}`
+          if (!acc[key]) {
+            acc[key] = { name: b.houseName, code: b.houseCode, zone: b.zone }
+          }
+          return acc
+        }, {})
+      )
       
       // ดึงรายการบ้านที่มีอยู่แล้วจาก Firebase โดยตรง
       let existingHouses = []
@@ -153,21 +161,28 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
       const existingHouseNames = Array.isArray(existingHouses) 
         ? existingHouses.map(h => (h.name || '').toLowerCase()) 
         : []
+      const existingHouseCodes = Array.isArray(existingHouses)
+        ? existingHouses.map(h => (h.code || '').toLowerCase()).filter(Boolean)
+        : []
       
       // สร้างบ้านใหม่สำหรับบ้านที่ยังไม่มี - ใช้ Firebase โดยตรง
       let housesCreated = 0
-      for (const houseName of uniqueHouses) {
-        if (!existingHouseNames.includes(houseName.toLowerCase())) {
+      for (const house of uniqueHouses) {
+        const houseName = (house.name || '').trim()
+        const houseCode = (house.code || '').trim()
+        const houseZone = (house.zone || '').trim()
+        const hasCode = Boolean(houseCode)
+        const codeExists = hasCode && existingHouseCodes.includes(houseCode.toLowerCase())
+        const nameExists = houseName && existingHouseNames.includes(houseName.toLowerCase())
+        if (!codeExists && !nameExists) {
           try {
-            // หา zone ของบ้านนี้จาก bookings
-            const houseZone = bookings.find(b => b.houseName === houseName)?.zone || ''
-            const result = await createHouseIfNotExists(houseName, 10, houseZone)
+            const result = await createHouseIfNotExists(houseName || houseCode, 10, houseZone, houseCode)
             if (!result.exists) {
               housesCreated++
-              console.log('Created house via Firebase:', houseName, 'zone:', houseZone)
+              console.log('Created house via Firebase:', houseName || houseCode, 'code:', houseCode, 'zone:', houseZone)
             }
           } catch (err) {
-            console.error('Failed to create house:', houseName, err)
+            console.error('Failed to create house:', houseName || houseCode, err)
           }
         }
       }
@@ -218,8 +233,8 @@ export default function ImportExcelModal({ onClose, onImportSuccess }) {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-blue-800 mb-2">รูปแบบไฟล์ Excel ที่รองรับ:</h3>
             <ul className="text-sm text-blue-700 space-y-1 ml-4">
-              <li>• คอลัมน์ "บ้าน" หรือ "บ้านไหว" = ชื่อบ้าน (เช่น Pool Villa City)</li>
-              <li>• คอลัมน์ "รหัส" = รหัสบ้าน (เช่น CITY-743)</li>
+              <li>• คอลัมน์ "บ้าน" หรือ "ชื่อบ้าน" = ชื่อบ้าน (เช่น Pool Villa City)</li>
+              <li>• คอลัมน์ "รหัส" หรือ "โค้ด" = รหัสบ้าน (เช่น CITY-743)</li>
               <li>• คอลัมน์ "เดือน" = เดือนและปี (เช่น มกราคม 2569)</li>
               <li>• คอลัมน์ "วันที่" = วันที่จอง (เช่น 13, 14, 23)</li>
               <li>• คอลัมน์ "สถานะ" = สถานะการจอง (เช่น ดีลล้วง)</li>

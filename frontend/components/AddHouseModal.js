@@ -3,6 +3,7 @@ import * as api from '../lib/api'
 
 export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
   const [name, setName] = useState('')
+  const [code, setCode] = useState('')
   const [capacity, setCapacity] = useState('4')
   const [zone, setZone] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,10 +24,11 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
     setLoading(true)
     setError('')
     try {
-      const newHouse = await api.addHouse(name, cap, zone)
+      const newHouse = await api.addHouse(name, cap, zone, '', code)
       if (newHouse && newHouse.id) {
         onHouseAdded(newHouse)
         setName('')
+        setCode('')
         setCapacity('4')
         setZone('')
         onClose()
@@ -55,6 +57,17 @@ export default function AddHouseModal({ isOpen, onClose, onHouseAdded }) {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="กรอกชื่อบ้าน"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">รหัสบ้าน (ไม่แสดงในปฏิทิน)</label>
+            <input
+              type="text"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              placeholder="เช่น CITY-743"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
           </div>
