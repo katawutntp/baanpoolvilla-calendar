@@ -1,4 +1,5 @@
 import { db } from './firebase';
+import { createHouseIfNotExists } from './firebaseApi';
 import {
   collection,
   doc,
@@ -125,6 +126,7 @@ export async function syncBookingsFromGitHub() {
     const housesRef = collection(db, HOUSES_COLLECTION);
     let updatedCount = 0;
     let skippedManual = 0;
+    let createdCount = 0;
     
     for (const [houseKey, bookings] of Object.entries(bookingsByHouse)) {
       try {
@@ -141,14 +143,28 @@ export async function syncBookingsFromGitHub() {
           snapshot = await getDocs(byName);
         }
         
+        let houseDoc = null;
+        let houseRef = null;
+        let houseData = null;
+
         if (snapshot.docs.length === 0) {
-          console.log(`House not found: ${houseKey}`);
-          continue;
+          const createName = bookingName || bookingCode || 'Unnamed';
+          try {
+            const created = await createHouseIfNotExists(createName, 10, '', bookingCode);
+            houseRef = doc(db, HOUSES_COLLECTION, created.id);
+            houseData = created;
+            createdCount++;
+            console.log(`Created house: ${createName} (${bookingCode || '-'})`);
+          } catch (createErr) {
+            console.error(`Failed to create house: ${houseKey}`, createErr);
+            continue;
+          }
+        } else {
+          houseDoc = snapshot.docs[0];
+          houseRef = doc(db, HOUSES_COLLECTION, houseDoc.id);
+          houseData = houseDoc.data();
         }
-        
-        const houseDoc = snapshot.docs[0];
-        const houseRef = doc(db, HOUSES_COLLECTION, houseDoc.id);
-        const houseData = houseDoc.data();
+
         if (bookingCode && !houseData.code) {
           await updateDoc(houseRef, { code: bookingCode, updatedAt: serverTimestamp() });
         }
@@ -192,8 +208,9 @@ export async function syncBookingsFromGitHub() {
     
     return {
       success: true,
-      message: `Synced ${updatedCount} houses, skipped ${skippedManual} manual entries`,
+      message: `Synced ${updatedCount} houses, created ${createdCount} houses, skipped ${skippedManual} manual entries`,
       updatedCount,
+      createdCount,
       skippedManual
     };
     

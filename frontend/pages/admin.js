@@ -107,6 +107,68 @@ export default function AdminPage() {
     }
   }
 
+  function handleExportCalendar() {
+    if (!houses || houses.length === 0) {
+      alert('ไม่มีข้อมูลบ้านให้ export')
+      return
+    }
+
+    const rows = []
+    houses.forEach(h => {
+      const prices = h.prices || {}
+      Object.entries(prices).forEach(([date, info]) => {
+        rows.push({
+          houseName: h.name || '',
+          houseCode: h.code || '',
+          zone: h.zone || '',
+          date,
+          price: info?.price ?? '',
+          status: info?.status || '',
+          manual: info?.manual ? 'manual' : '',
+          source: info?.source || ''
+        })
+      })
+    })
+
+    if (rows.length === 0) {
+      alert('ไม่มีข้อมูลปฏิทินให้ export')
+      return
+    }
+
+    rows.sort((a, b) => {
+      const nameCompare = a.houseName.localeCompare(b.houseName, 'th')
+      if (nameCompare !== 0) return nameCompare
+      return String(a.date).localeCompare(String(b.date))
+    })
+
+    const headers = ['ชื่อบ้าน', 'รหัส', 'โซน', 'วันที่', 'ราคา', 'สถานะ', 'manual', 'source']
+    const escapeCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => [
+        r.houseName,
+        r.houseCode,
+        r.zone,
+        r.date,
+        r.price,
+        r.status,
+        r.manual,
+        r.source
+      ].map(escapeCsv).join(','))
+    ].join('\n')
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const dateStr = new Date().toISOString().slice(0, 10)
+    link.href = url
+    link.download = `calendar_export_${dateStr}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   function handleLoginSuccess(role) {
     setIsLoggedIn(true)
     setUserRole(role)
@@ -346,6 +408,12 @@ export default function AdminPage() {
                     <>🔄 Sync จาก Scraper</>
                   )}
                 </button>
+                <button
+                  onClick={handleExportCalendar}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
+                >
+                  📤 Export ปฏิทินรวม
+                </button>
                 <button 
                   onClick={() => setImportExcelOpen(true)}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2"
@@ -368,6 +436,7 @@ export default function AdminPage() {
           username={username}
           zoneFilter={zoneFilter}
           onZoneFilterChange={setZoneFilter}
+          totalHouses={houses.length}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {filteredHouses.length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}

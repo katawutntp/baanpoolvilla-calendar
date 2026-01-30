@@ -1,4 +1,4 @@
-export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLogout, onOpenAdmin, userRole, username, zoneFilter, onZoneFilterChange }) {
+export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLogout, onOpenAdmin, userRole, username, zoneFilter, onZoneFilterChange, totalHouses }) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center gap-4">
@@ -8,6 +8,11 @@ export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLog
           </span>
           ปฏิทิน BaanPoolVilla
         </h1>
+        {typeof totalHouses === 'number' && (
+          <span className="text-sm text-gray-700 bg-white border border-gray-200 px-3 py-1 rounded-full">
+            ทั้งหมด {totalHouses} บ้าน
+          </span>
+        )}
         <select
           value={zoneFilter || 'all'}
           onChange={e => onZoneFilterChange && onZoneFilterChange(e.target.value)}
