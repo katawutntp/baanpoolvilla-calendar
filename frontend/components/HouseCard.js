@@ -116,9 +116,29 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setDetailsModalOpen(true)} className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium">
-              รายละเอียดบ้าน
-            </button>
+            {(() => {
+              // ดึง URL แรกจาก description
+              const urlMatch = (house.description || '').match(/(https?:\/\/[^\s]+)/)
+              const detailUrl = urlMatch ? urlMatch[1] : null
+              
+              if (detailUrl) {
+                return (
+                  <a 
+                    href={detailUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium"
+                  >
+                    รายละเอียดบ้าน
+                  </a>
+                )
+              }
+              return (
+                <button onClick={() => setDetailsModalOpen(true)} className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium">
+                  รายละเอียดบ้าน
+                </button>
+              )
+            })()}
             {userRole === 'admin' && onOpenEdit && (
               <button onClick={() => onOpenEdit(index)} className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
                 <IconEdit className="w-5 h-5" />

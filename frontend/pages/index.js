@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import HouseCard from '../components/HouseCard'
 import * as api from '../lib/api'
 
 export default function Home() {
+  const router = useRouter()
+  const { house: houseQuery } = router.query
+  
   const [houses, setHouses] = useState([])
   const [search, setSearch] = useState('')
   const [zoneFilter, setZoneFilter] = useState('all')
@@ -41,6 +45,13 @@ export default function Home() {
   const zoneOrder = ['bangsaen', 'pattaya', 'sattahip'];
   const filteredHouses = houses
     .filter(h => {
+      // กรองจาก query parameter house (ใช้ชื่อหรือ code)
+      if (houseQuery) {
+        const queryLower = houseQuery.toLowerCase().trim()
+        const matchName = (h.name || '').toLowerCase().includes(queryLower)
+        const matchCode = (h.code || '').toLowerCase() === queryLower
+        if (!matchName && !matchCode) return false
+      }
       const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
       const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
       return matchSearch && matchZone
