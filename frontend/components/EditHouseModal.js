@@ -9,6 +9,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
   const [capacity, setCapacity] = useState('4')
   const [zone, setZone] = useState('')
   const [description, setDescription] = useState('')
+  const [location, setLocation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
@@ -20,6 +21,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
       setCapacity(String(house.capacity || 4))
       setZone(house.zone || '')
       setDescription(house.description || '')
+      setLocation(house.location || '')
       setError('')
       setCopySuccess(false)
     }
@@ -41,10 +43,10 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setError('')
     try {
       // บันทึกลง Firebase
-      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, zone, description })
+      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, zone, description, location })
       
       // อัพเดท local API ด้วย (เพื่อ backward compatibility)
-      await api.updateHouse(house.id, { name, code, capacity: cap, zone, description })
+      await api.updateHouse(house.id, { name, code, capacity: cap, zone, description, location })
       
       if (updated) {
         onHouseUpdated({ ...house, ...updated })
@@ -125,6 +127,18 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               <option value="sattahip">สัตหีบ</option>
               <option value="bangsaen">บางแสน</option>
             </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">ตำแหน่ง (พิกัด/ลิงก์ Google Maps)</label>
+            <input
+              type="text"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="เช่น 13.2685, 100.9435 หรือ ลิงก์ Google Maps"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">ใช้สำหรับปักหมุดในแผนที่ Pinmap</p>
           </div>
 
           <div className="mb-6">
