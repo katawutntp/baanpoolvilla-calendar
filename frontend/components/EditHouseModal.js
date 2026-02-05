@@ -7,6 +7,8 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
   const [capacity, setCapacity] = useState('4')
+  const [bedrooms, setBedrooms] = useState('1')
+  const [bathrooms, setBathrooms] = useState('1')
   const [zone, setZone] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
@@ -19,6 +21,8 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
       setName(house.name || '')
       setCode(house.code || '')
       setCapacity(String(house.capacity || 4))
+      setBedrooms(String(house.bedrooms || 1))
+      setBathrooms(String(house.bathrooms || 1))
       setZone(house.zone || '')
       setDescription(house.description || '')
       setLocation(house.location || '')
@@ -42,11 +46,13 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     setLoading(true)
     setError('')
     try {
+      const beds = parseInt(bedrooms) || 1
+      const baths = parseInt(bathrooms) || 1
       // บันทึกลง Firebase
-      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, zone, description, location })
+      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       // อัพเดท local API ด้วย (เพื่อ backward compatibility)
-      await api.updateHouse(house.id, { name, code, capacity: cap, zone, description, location })
+      await api.updateHouse(house.id, { name, code, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       if (updated) {
         onHouseUpdated({ ...house, ...updated })
@@ -113,6 +119,33 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               max="100"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ห้องนอน 🛏️</label>
+              <input
+                type="number"
+                value={bedrooms}
+                onChange={e => setBedrooms(e.target.value)}
+                placeholder="1"
+                min="1"
+                max="20"
+                className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ห้องน้ำ 🚿</label>
+              <input
+                type="number"
+                value={bathrooms}
+                onChange={e => setBathrooms(e.target.value)}
+                placeholder="1"
+                min="1"
+                max="20"
+                className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div className="mb-6">
