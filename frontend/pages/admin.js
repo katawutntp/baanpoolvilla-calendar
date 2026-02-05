@@ -309,7 +309,7 @@ export default function AdminPage() {
     />
   }
 
-  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip'];
+  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip', 'rayong'];
   
   // ตรวจสอบว่ามีการค้นหา/กรองหรือไม่
   const isFiltering = search.trim() !== '' || zoneFilter !== 'all';

@@ -22,6 +22,7 @@ export default function Header({ onAdd, onRefresh, onSearch, onOpenWeekly, onLog
           <option value="pattaya">พัทยา</option>
           <option value="sattahip">สัตหีบ</option>
           <option value="bangsaen">บางแสน</option>
+          <option value="rayong">ระยอง</option>
         </select>
         <div className="relative">
           <input onChange={e => onSearch && onSearch(e.target.value)} placeholder="ค้นหาบ้าน..." className="pl-3 pr-10 py-2 rounded-md border w-64 text-sm" />

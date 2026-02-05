@@ -42,7 +42,7 @@ export default function Home() {
     }));
   }
 
-  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip'];
+  const zoneOrder = ['bangsaen', 'pattaya', 'sattahip', 'rayong'];
   const filteredHouses = houses
     .filter(h => {
       // กรองจาก query parameter house (ใช้ชื่อหรือ code)
@@ -81,6 +81,7 @@ export default function Home() {
               <option value="pattaya">พัทยา</option>
               <option value="sattahip">สัตหีบ</option>
               <option value="bangsaen">บางแสน</option>
+              <option value="rayong">ระยอง</option>
             </select>
             <input
               type="text"

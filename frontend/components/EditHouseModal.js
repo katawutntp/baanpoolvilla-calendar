@@ -159,6 +159,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               <option value="pattaya">พัทยา</option>
               <option value="sattahip">สัตหีบ</option>
               <option value="bangsaen">บางแสน</option>
+              <option value="rayong">ระยอง</option>
             </select>
           </div>
 

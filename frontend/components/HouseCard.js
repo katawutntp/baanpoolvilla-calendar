@@ -392,7 +392,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <p className="text-sm text-gray-600">📍 โซน</p>
                 <p className="text-xl font-bold text-purple-700">
-                  {house.zone === 'pattaya' ? 'พัทยา' : house.zone === 'sattahip' ? 'สัตหีบ' : house.zone === 'bangsaen' ? 'บางแสน' : 'ไม่ระบุ'}
+                  {house.zone === 'pattaya' ? 'พัทยา' : house.zone === 'sattahip' ? 'สัตหีบ' : house.zone === 'bangsaen' ? 'บางแสน' : house.zone === 'rayong' ? 'ระยอง' : 'ไม่ระบุ'}
                 </p>
               </div>
             </div>
