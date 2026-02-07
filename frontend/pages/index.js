@@ -52,7 +52,8 @@ export default function Home() {
         const matchCode = (h.code || '').toLowerCase() === queryLower
         if (!matchName && !matchCode) return false
       }
-      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
+                        (h.code || '').toLowerCase().includes((search || '').toLowerCase())
       const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
       return matchSearch && matchZone
     })

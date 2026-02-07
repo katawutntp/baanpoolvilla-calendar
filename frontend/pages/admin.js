@@ -316,7 +316,8 @@ export default function AdminPage() {
   
   const filteredHouses = houses
     .filter(h => {
-      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase())
+      const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
+                          (h.code || '').toLowerCase().includes((search || '').toLowerCase())
       const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
       return matchSearch && matchZone
     })
