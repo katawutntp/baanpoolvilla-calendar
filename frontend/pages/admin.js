@@ -32,6 +32,10 @@ export default function AdminPage() {
   const [draggedIndex, setDraggedIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
   
+  // Date range filter states
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
+  
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userRole, setUserRole] = useState(null)
@@ -311,15 +315,41 @@ export default function AdminPage() {
 
   const zoneOrder = ['bangsaen', 'pattaya', 'sattahip', 'rayong'];
   
+  // ฟังก์ชันตรวจสอบว่าบ้านว่างในช่วงวันที่เลือก
+  function isHouseAvailableInRange(house, startDate, endDate) {
+    if (!startDate || !endDate) return true // ไม่ได้เลือกวันที่ = แสดงทั้งหมด
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    if (start > end) return true // วันที่ไม่ถูกต้อง = แสดงทั้งหมด
+    
+    const current = new Date(start)
+    while (current <= end) {
+      const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`
+      const priceObj = house.prices && house.prices[iso]
+      if (priceObj && (priceObj.status === 'booked' || priceObj.status === 'closed')) {
+        return false // มีวันที่ถูกจองหรือปิด = ไม่ว่าง
+      }
+      current.setDate(current.getDate() + 1)
+    }
+    return true // ว่างทุกวันในช่วง
+  }
+  
+  function clearDateFilter() {
+    setFilterStartDate('')
+    setFilterEndDate('')
+  }
+  
   // ตรวจสอบว่ามีการค้นหา/กรองหรือไม่
-  const isFiltering = search.trim() !== '' || zoneFilter !== 'all';
+  const isDateFiltering = filterStartDate && filterEndDate;
+  const isFiltering = search.trim() !== '' || zoneFilter !== 'all' || isDateFiltering;
   
   const filteredHouses = houses
     .filter(h => {
       const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
                           (h.code || '').toLowerCase().includes((search || '').toLowerCase())
       const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-      return matchSearch && matchZone
+      const matchDateRange = isHouseAvailableInRange(h, filterStartDate, filterEndDate)
+      return matchSearch && matchZone && matchDateRange
     })
   // ไม่ sort อีกแล้ว ใช้ลำดับจาก API โดยตรง (sortOrder)
 
@@ -438,6 +468,13 @@ export default function AdminPage() {
           zoneFilter={zoneFilter}
           onZoneFilterChange={setZoneFilter}
           totalHouses={houses.length}
+          filterStartDate={filterStartDate}
+          filterEndDate={filterEndDate}
+          onFilterStartDateChange={setFilterStartDate}
+          onFilterEndDateChange={setFilterEndDate}
+          onClearDateFilter={clearDateFilter}
+          filteredCount={filteredHouses.length}
+          isDateFiltering={isDateFiltering}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {filteredHouses.length === 0 && <div className="text-center text-gray-500 col-span-full">ยังไม่มีบ้าน — กด "เพิ่มบ้าน" เพื่อเริ่ม</div>}

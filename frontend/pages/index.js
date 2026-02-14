@@ -11,6 +11,8 @@ export default function Home() {
   const [search, setSearch] = useState('')
   const [zoneFilter, setZoneFilter] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
 
   useEffect(() => { 
     load() 
@@ -42,6 +44,27 @@ export default function Home() {
     }));
   }
 
+  // ฟังก์ชันตรวจสอบว่าบ้านว่างในช่วงวันที่เลือก
+  function isHouseAvailableInRange(house, startDate, endDate) {
+    if (!startDate || !endDate) return true
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    if (start > end) return true
+    
+    const current = new Date(start)
+    while (current <= end) {
+      const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`
+      const priceObj = house.prices && house.prices[iso]
+      if (priceObj && (priceObj.status === 'booked' || priceObj.status === 'closed')) {
+        return false
+      }
+      current.setDate(current.getDate() + 1)
+    }
+    return true
+  }
+
+  const isDateFiltering = filterStartDate && filterEndDate;
+  
   const zoneOrder = ['bangsaen', 'pattaya', 'sattahip', 'rayong'];
   const filteredHouses = houses
     .filter(h => {
@@ -55,7 +78,8 @@ export default function Home() {
       const matchSearch = (h.name || '').toLowerCase().includes((search || '').toLowerCase()) ||
                         (h.code || '').toLowerCase().includes((search || '').toLowerCase())
       const matchZone = zoneFilter === 'all' || (h.zone || '') === zoneFilter
-      return matchSearch && matchZone
+      const matchDateRange = isHouseAvailableInRange(h, filterStartDate, filterEndDate)
+      return matchSearch && matchZone && matchDateRange
     })
   // ใช้ลำดับจาก API (sortOrder) ที่ admin ตั้งไว้ ไม่ต้อง sort ใหม่
 
@@ -100,6 +124,49 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Date Range Filter */}
+      <div className="max-w-7xl mx-auto px-4 mt-4">
+        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📅</span>
+            <span className="text-sm font-medium text-gray-700">ค้นหาบ้านว่าง:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-500">เช็คอิน</label>
+            <input 
+              type="date" 
+              value={filterStartDate}
+              onChange={e => setFilterStartDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+            />
+          </div>
+          <span className="text-gray-400">→</span>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-500">เช็คเอาท์</label>
+            <input 
+              type="date" 
+              value={filterEndDate}
+              min={filterStartDate || undefined}
+              onChange={e => setFilterEndDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+            />
+          </div>
+          {isDateFiltering && (
+            <>
+              <div className="flex items-center gap-2 ml-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                <span className="text-green-600 text-sm font-medium">🏠 บ้านว่าง: {filteredHouses.length} หลัง</span>
+              </div>
+              <button 
+                onClick={() => { setFilterStartDate(''); setFilterEndDate(''); }}
+                className="ml-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition"
+              >
+                ✕ ล้าง
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
