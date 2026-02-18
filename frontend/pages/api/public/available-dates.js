@@ -31,13 +31,24 @@ export default async function handler(req, res) {
   try {
     const houses = await getAllHouses()
 
-    // ส่งแค่ apiCode + วันว่าง (DD/MM/YYYY)
+    // คำนวณช่วงวันที่: วันนี้ -> +3 เดือน
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const threeMonthsLater = new Date(today)
+    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3)
+
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const endStr = `${threeMonthsLater.getFullYear()}-${String(threeMonthsLater.getMonth() + 1).padStart(2, '0')}-${String(threeMonthsLater.getDate()).padStart(2, '0')}`
+
+    // ส่งแค่ apiCode + วันว่าง (DD/MM/YYYY) จากวันนี้ไป 3 เดือน
     const result = houses
       .filter(house => house.apiCode) // เฉพาะบ้านที่มี apiCode
       .map(house => {
         const availableDates = Object.entries(house.prices || {})
-          .filter(([_, priceData]) => {
-            return !priceData.status || priceData.status === 'available'
+          .filter(([date, priceData]) => {
+            const isAvailable = !priceData.status || priceData.status === 'available'
+            const inRange = date >= todayStr && date <= endStr
+            return isAvailable && inRange
           })
           .map(([date]) => date)
           .sort()
