@@ -7,7 +7,10 @@
  * Usage:
  * import AvailableDatesWidget from '@/components/AvailableDatesWidget'
  * 
- * <AvailableDatesWidget apiBaseUrl="http://localhost:3000" />
+ * <AvailableDatesWidget />
+ * 
+ * Props:
+ * - apiBaseUrl: Override API base URL (optional, default from env var)
  */
 
 import React, { useState, useEffect } from 'react'
@@ -19,7 +22,9 @@ import {
   getPriceForDate
 } from '@/lib/publicApi'
 
-export default function AvailableDatesWidget({ apiBaseUrl = '/api/public' }) {
+export default function AvailableDatesWidget({ 
+  apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || '/api/public'
+}) {
   const [houses, setHouses] = useState([])
   const [selectedHouse, setSelectedHouse] = useState(null)
   const [houseDetails, setHouseDetails] = useState(null)

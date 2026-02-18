@@ -9,9 +9,13 @@
  * 
  * const dates = await getAllAvailableDates()
  * const houseData = await getHouseAvailableDates(5)
+ * 
+ * Environment Variables:
+ * - NEXT_PUBLIC_API_BASE: Base URL สำหรับ API (default: '/api/public')
  */
 
-const PUBLIC_API_BASE = '/api/public'
+// ใช้ environment variable ถ้าหากกำหนดไว้ ไม่เช่นนั้นใช้ relative path
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE || '/api/public'
 
 /**
  * Get available dates for all houses

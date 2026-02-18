@@ -414,7 +414,17 @@
   </div>
 
   <script>
-    const API_BASE = 'http://localhost:3000/api/public' // Change this if API is on different server
+    // ==============================================
+    // Configuration
+    // ==============================================
+    // สามารถเปลี่ยนค่าตามต้องการหรือใช้ query parameter:
+    // ?api=http://yourdomain.com/api/public
+    
+    const urlParams = new URLSearchParams(window.location.search)
+    const API_BASE = urlParams.get('api') || 'http://localhost:3000/api/public'
+    
+    console.log('📡 Using API base URL:', API_BASE)
+    
     let houses = []
     let selectedHouse = null
     let houseDetails = null
