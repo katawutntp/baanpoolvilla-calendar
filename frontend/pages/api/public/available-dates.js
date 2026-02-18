@@ -3,10 +3,16 @@
  * 
  * GET /api/public/available-dates
  * 
- * Returns all houses with available dates information
+ * Returns: [{ apiCode, availableDates: ["DD/MM/YYYY", ...] }]
  */
 
 import { getAllHouses } from '@/lib/firebaseApi'
+
+// แปลง YYYY-MM-DD -> DD/MM/YYYY
+function formatDate(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${d}/${m}/${y}`
+}
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -25,26 +31,23 @@ export default async function handler(req, res) {
   try {
     const houses = await getAllHouses()
 
-    // Transform to available dates format
-    const result = houses.map(house => {
-      const availableDates = Object.entries(house.prices || {})
-        .filter(([_, priceData]) => {
-          // Include if no status or status is 'available'
-          return !priceData.status || priceData.status === 'available'
-        })
-        .map(([date]) => date)
-        .sort()
+    // ส่งแค่ apiCode + วันว่าง (DD/MM/YYYY)
+    const result = houses
+      .filter(house => house.apiCode) // เฉพาะบ้านที่มี apiCode
+      .map(house => {
+        const availableDates = Object.entries(house.prices || {})
+          .filter(([_, priceData]) => {
+            return !priceData.status || priceData.status === 'available'
+          })
+          .map(([date]) => date)
+          .sort()
+          .map(formatDate)
 
-      return {
-        id: house.id,
-        name: house.name,
-        capacity: house.capacity || 0,
-        zone: house.zone || '',
-        description: house.description || '',
-        availableDates: availableDates,
-        totalAvailable: availableDates.length
-      }
-    })
+        return {
+          apiCode: house.apiCode,
+          availableDates
+        }
+      })
 
     res.status(200).json(result)
   } catch (error) {

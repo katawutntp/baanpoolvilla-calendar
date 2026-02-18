@@ -6,6 +6,7 @@ import { IconCopy } from './icons'
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
+  const [apiCode, setApiCode] = useState('')
   const [capacity, setCapacity] = useState('4')
   const [bedrooms, setBedrooms] = useState('1')
   const [bathrooms, setBathrooms] = useState('1')
@@ -20,6 +21,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
     if (house) {
       setName(house.name || '')
       setCode(house.code || '')
+      setApiCode(house.apiCode || '')
       setCapacity(String(house.capacity || 4))
       setBedrooms(String(house.bedrooms || 1))
       setBathrooms(String(house.bathrooms || 1))
@@ -49,10 +51,10 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
       const beds = parseInt(bedrooms) || 1
       const baths = parseInt(bathrooms) || 1
       // บันทึกลง Firebase
-      const updated = await firebaseApi.updateHouse(house.id, { name, code, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
+      const updated = await firebaseApi.updateHouse(house.id, { name, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       // อัพเดท local API ด้วย (เพื่อ backward compatibility)
-      await api.updateHouse(house.id, { name, code, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
+      await api.updateHouse(house.id, { name, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       if (updated) {
         onHouseUpdated({ ...house, ...updated })
@@ -106,6 +108,18 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               placeholder="เช่น CITY-743"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">รหัสบ้าน API 🔗</label>
+            <input
+              type="text"
+              value={apiCode}
+              onChange={e => setApiCode(e.target.value)}
+              placeholder="เช่น BPV-001 (ใช้ส่งออกผ่าน Public API)"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">รหัสนี้จะถูกส่งออกผ่าน Public API สำหรับเว็บอื่น</p>
           </div>
 
           <div className="mb-6">
