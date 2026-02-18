@@ -5,6 +5,7 @@
  * 
  * id = apiCode ของบ้าน
  * Returns: { apiCode, availableDates: ["DD/MM/YYYY", ...] }
+ * สร้างวันทั้งหมดจากวันนี้ไป 3 เดือน แล้วตัดวันที่ booked/closed ออก
  */
 
 import { getAllHouses } from '@/lib/firebaseApi'
@@ -13,6 +14,22 @@ import { getAllHouses } from '@/lib/firebaseApi'
 function formatDate(dateStr) {
   const [y, m, d] = dateStr.split('-')
   return `${d}/${m}/${y}`
+}
+
+// สร้าง YYYY-MM-DD string
+function toDateStr(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+// สร้างวันทั้งหมดจาก start ถึง end
+function generateAllDates(start, end) {
+  const dates = []
+  const current = new Date(start)
+  while (current <= end) {
+    dates.push(toDateStr(current))
+    current.setDate(current.getDate() + 1)
+  }
+  return dates
 }
 
 export default async function handler(req, res) {
@@ -36,7 +53,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ค้นหาด้วย apiCode
     const houses = await getAllHouses()
     const house = houses.find(h => h.apiCode === id)
 
@@ -44,24 +60,24 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'House not found with this apiCode' })
     }
 
-    // คำนวณช่วงวันที่: วันนี้ -> +3 เดือน
+    // ช่วงวันที่: วันนี้ -> +3 เดือน
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const threeMonthsLater = new Date(today)
     threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3)
 
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-    const endStr = `${threeMonthsLater.getFullYear()}-${String(threeMonthsLater.getMonth() + 1).padStart(2, '0')}-${String(threeMonthsLater.getDate()).padStart(2, '0')}`
+    // สร้างวันทั้งหมดในช่วง
+    const allDates = generateAllDates(today, threeMonthsLater)
+    const prices = house.prices || {}
 
-    // ส่งแค่ apiCode + วันว่าง (DD/MM/YYYY) จากวันนี้ไป 3 เดือน
-    const availableDates = Object.entries(house.prices || {})
-      .filter(([date, priceData]) => {
-        const isAvailable = !priceData.status || priceData.status === 'available'
-        const inRange = date >= todayStr && date <= endStr
-        return isAvailable && inRange
+    // กรองวันที่ถูก booked/closed/pending ออก -> ที่เหลือคือวันว่าง
+    const availableDates = allDates
+      .filter(date => {
+        const priceData = prices[date]
+        if (!priceData) return true
+        if (!priceData.status || priceData.status === 'available') return true
+        return false
       })
-      .map(([date]) => date)
-      .sort()
       .map(formatDate)
 
     res.status(200).json({
