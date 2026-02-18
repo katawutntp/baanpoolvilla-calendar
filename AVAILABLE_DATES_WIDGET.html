@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Dates Widget - Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    .header p {
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .house-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .house-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .house-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .house-card.active {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .house-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .house-info {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .available-count {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .details {
+      background: #f5f7fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .detail-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #667eea;
+    }
+
+    .detail-label {
+      font-size: 12px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+    }
+
+    .date-item {
+      text-align: center;
+      padding: 12px;
+      border-radius: 6px;
+      background: #e8f5e9;
+      border: 1px solid #81c784;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .date-item:hover {
+      transform: scale(1.05);
+      background: #c8e6c9;
+    }
+
+    .date-item.booked {
+      background: #ffebee;
+      border-color: #ef5350;
+      cursor: not-allowed;
+    }
+
+    .date-day {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .date-num {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2e7d32;
+    }
+
+    .date-item.booked .date-num {
+      color: #c62828;
+    }
+
+    .date-price {
+      font-size: 11px;
+      color: #558b2f;
+      margin-top: 5px;
+    }
+
+    .date-item.booked .date-price {
+      color: #d32f2f;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+
+    .code-block code {
+      display: block;
+      line-height: 1.5;
+    }
+
+    .keyword { color: #569cd6; }
+    .string { color: #ce9178; }
+    .comment { color: #6a9955; }
+
+    .button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .house-list {
+        grid-template-columns: 1fr;
+      }
+
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .date-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏠 Available Dates Widget</h1>
+      <p>Check available dates for vacation homes</p>
+    </div>
+
+    <div class="content">
+      <!-- API Endpoint Info -->
+      <div class="section">
+        <div class="section-title">📡 API Source</div>
+        <p style="color: #666; margin-bottom: 10px;">
+          This widget fetches data from the public Calendar API (no authentication needed):
+        </p>
+        <div class="code-block">
+          <code><span class="keyword">GET</span> /api/public/available-dates</code>
+          <code><span class="keyword">GET</span> /api/public/available-dates/{id}</code>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error"></div>
+
+      <!-- Loading State -->
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px;">Loading houses...</p>
+      </div>
+
+      <!-- Main Content -->
+      <div id="app" style="display: none;">
+        <!-- House Selection -->
+        <div class="section">
+          <div class="section-title">🏡 Available Houses</div>
+          <div class="house-list" id="houseList"></div>
+        </div>
+
+        <!-- Details Section -->
+        <div id="detailsSection" style="display: none;">
+          <div class="section">
+            <div class="details" id="houseDetails"></div>
+          </div>
+
+          <!-- Date Filters -->
+          <div class="section">
+            <div class="section-title">📅 Filter by Date Range</div>
+            <div class="filters">
+              <div class="filter-group">
+                <label>Start Date:</label>
+                <input type="date" id="startDate" />
+              </div>
+              <div class="filter-group">
+                <label>End Date:</label>
+                <input type="date" id="endDate" />
+              </div>
+              <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="button" onclick="applyFilters()">🔍 Apply Filter</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Dates -->
+          <div class="section">
+            <div class="section-title">✅ Available Dates (<span id="availableCount">0</span>)</div>
+            <div class="date-grid" id="dateGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api/public' // Change this if API is on different server
+    let houses = []
+    let selectedHouse = null
+    let houseDetails = null
+
+    // Initialize
+    async function init() {
+      try {
+        await loadHouses()
+        document.getElementById('loading').style.display = 'none'
+        document.getElementById('app').style.display = 'block'
+      } catch (error) {
+        showError(error.message)
+      }
+    }
+
+    // Load all houses
+    async function loadHouses() {
+      const response = await fetch(`${API_BASE}/available-dates`)
+      if (!response.ok) throw new Error('Failed to load houses')
+      houses = await response.json()
+      renderHouseList()
+    }
+
+    // Render house list
+    function renderHouseList() {
+      const list = document.getElementById('houseList')
+      list.innerHTML = houses.map(house => `
+        <div class="house-card" onclick="selectHouse(${house.id})">
+          <div class="house-name">${house.name}</div>
+          <div class="house-info">👥 ${house.capacity} guests</div>
+          <div class="house-info">📍 ${house.zone || 'N/A'}</div>
+          <div>
+            <span class="available-count">${house.totalAvailable} dates</span>
+          </div>
+        </div>
+      `).join('')
+    }
+
+    // Select house
+    async function selectHouse(houseId) {
+      try {
+        const response = await fetch(`${API_BASE}/available-dates/${houseId}`)
+        if (!response.ok) throw new Error('Failed to load house details')
+        houseDetails = await response.json()
+        selectedHouse = houseId
+
+        // Update UI
+        document.querySelectorAll('.house-card').forEach(card => {
+          card.classList.remove('active')
+        })
+        event.target.closest('.house-card').classList.add('active')
+
+        // Initialize filters
+        const today = new Date().toISOString().split('T')[0]
+        const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        document.getElementById('startDate').value = today
+        document.getElementById('endDate').value = in30Days
+
+        renderHouseDetails()
+        renderAvailableDates()
+        document.getElementById('detailsSection').style.display = 'block'
+      } catch (error) {
+        showError(error.message)
+      }
+    }
+
+    // Render house details
+    function renderHouseDetails() {
+      const details = document.getElementById('houseDetails')
+      details.innerHTML = `
+        <div class="details-grid">
+          <div class="detail-item">
+            <div class="detail-label">House Name</div>
+            <div class="detail-value">${houseDetails.name}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Capacity</div>
+            <div class="detail-value">${houseDetails.capacity} guests</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Zone</div>
+            <div class="detail-value">${houseDetails.zone || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Available Dates</div>
+            <div class="detail-value">${houseDetails.totalAvailable}</div>
+          </div>
+        </div>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 13px;">
+          ${houseDetails.description || 'No description'}
+        </div>
+      `
+    }
+
+    // Render available dates
+    function renderAvailableDates() {
+      const startDate = document.getElementById('startDate').value
+      const endDate = document.getElementById('endDate').value
+
+      const filtered = filterDatesByRange(houseDetails.availableDates, startDate, endDate)
+      document.getElementById('availableCount').textContent = filtered.length
+
+      const grid = document.getElementById('dateGrid')
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="empty-state-icon">📭</div><p>No available dates in this range</p></div>'
+        return
+      }
+
+      grid.innerHTML = filtered.map(dateStr => {
+        const date = new Date(dateStr + 'T00:00:00')
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+        const dayNum = date.getDate()
+        const price = houseDetails.allPrices[dateStr]?.price
+
+        return `
+          <div class="date-item">
+            <div class="date-day">${dayName}</div>
+            <div class="date-num">${dayNum}</div>
+            ${price ? `<div class="date-price">฿${price.toLocaleString()}</div>` : ''}
+          </div>
+        `
+      }).join('')
+    }
+
+    // Filter helper
+    function filterDatesByRange(dates, startDate, endDate) {
+      const start = new Date(startDate).getTime()
+      const end = new Date(endDate).getTime()
+      return dates
+        .filter(dateStr => {
+          const d = new Date(dateStr + 'T00:00:00').getTime()
+          return d >= start && d <= end
+        })
+        .sort()
+    }
+
+    // Apply filters
+    function applyFilters() {
+      renderAvailableDates()
+    }
+
+    // Show error
+    function showError(message) {
+      const errorDiv = document.getElementById('error')
+      errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`
+      document.getElementById('loading').style.display = 'none'
+    }
+
+    // Start when ready
+    document.addEventListener('DOMContentLoaded', init)
+  </script>
+</body>
+</html>

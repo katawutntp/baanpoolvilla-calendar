@@ -307,6 +307,79 @@ app.delete('/api/users/:id', adminRequired, (req, res) => {
   res.json({ success: true });
 });
 
+// ===== PUBLIC API - Available Dates =====
+// Get available dates for all houses (PUBLIC - no auth required)
+app.get('/api/public/available-dates', (req, res) => {
+  const db = readDB();
+  const { format } = req.query; // format=simple or full (default=full)
+  
+  const result = db.houses.map(house => {
+    const availableDates = [];
+    
+    // Iterate through prices to find available dates
+    if (house.prices && typeof house.prices === 'object') {
+      Object.entries(house.prices).forEach(([dateStr, priceData]) => {
+        // If no status or status is 'available', it means the date is available
+        if (!priceData.status || priceData.status === 'available') {
+          availableDates.push(dateStr);
+        }
+      });
+    }
+    
+    // Sort dates
+    availableDates.sort();
+    
+    return {
+      id: house.id,
+      name: house.name,
+      capacity: house.capacity,
+      zone: house.zone || '',
+      description: house.description || '',
+      availableDates: availableDates,
+      totalAvailable: availableDates.length
+    };
+  });
+  
+  res.json(result);
+});
+
+// Get available dates for a specific house (PUBLIC - no auth required)
+app.get('/api/public/available-dates/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const db = readDB();
+  const house = db.houses.find(h => h.id === id);
+  
+  if (!house) {
+    return res.status(404).json({ error: 'house not found' });
+  }
+  
+  const availableDates = [];
+  
+  // Iterate through prices to find available dates
+  if (house.prices && typeof house.prices === 'object') {
+    Object.entries(house.prices).forEach(([dateStr, priceData]) => {
+      // If no status or status is 'available', it means the date is available
+      if (!priceData.status || priceData.status === 'available') {
+        availableDates.push(dateStr);
+      }
+    });
+  }
+  
+  // Sort dates
+  availableDates.sort();
+  
+  res.json({
+    id: house.id,
+    name: house.name,
+    capacity: house.capacity,
+    zone: house.zone || '',
+    description: house.description || '',
+    availableDates: availableDates,
+    totalAvailable: availableDates.length,
+    allPrices: house.prices || {} // optional: include all pricing info
+  });
+});
+
 // Auth middleware - requires any logged in user
 function authRequired(req, res, next) {
   const auth = req.headers.authorization;
