@@ -1,8 +1,10 @@
 /**
  * Public API Client for Calendar Available Dates
  * 
- * ใช้สำหรับ integrate กับเว็บอื่นเพื่อดึงข้อมูลวันที่ว่าง
- * ไม่ต้อง authentication
+ * ใช้สำหรับดึงข้อมูลวันที่ว่าง ไม่ต้อง authentication
+ * 
+ * Note: สำหรับเว็บอื่นที่ต้องการ cross-domain access
+ * ให้ใช้ URL เต็ม เช่น https://yourdomain.com/api/public/available-dates
  * 
  * Usage:
  * import { getAllAvailableDates, getHouseAvailableDates } from '@/lib/publicApi'
@@ -11,10 +13,12 @@
  * const houseData = await getHouseAvailableDates(5)
  * 
  * Environment Variables:
- * - NEXT_PUBLIC_API_BASE: Base URL สำหรับ API (default: '/api/public')
+ * - NEXT_PUBLIC_API_BASE: Override base URL (optional)
+ *   Format: http://domain.com/api/public (without trailing slash)
  */
 
-// ใช้ environment variable ถ้าหากกำหนดไว้ ไม่เช่นนั้นใช้ relative path
+// ใช้ relative path /api สำหรับ production (Vercel)
+// หรือ environment variable สำหรับการ override
 const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE || '/api/public'
 
 /**
