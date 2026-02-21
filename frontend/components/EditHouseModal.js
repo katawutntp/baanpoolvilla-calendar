@@ -194,7 +194,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
 
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">รายละเอียดบ้าน</label>
+              <label className="block text-sm font-medium text-gray-700">ลิงค์บ้าน</label>
               <button
                 type="button"
                 onClick={handleCopyDescription}

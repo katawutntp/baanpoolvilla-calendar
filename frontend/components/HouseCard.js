@@ -111,34 +111,13 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </span>
             <div className="min-w-0">
               <div className="text-xs opacity-90">บ้าน</div>
-              <h2 className="font-bold text-sm sm:text-lg truncate">{house.name}</h2>
+              <h2 className="font-bold text-sm sm:text-lg">{house.name}</h2>
+              {house.code && <div className="text-xs opacity-75 font-mono">{house.code}</div>}
+              {house.apiCode && <div className="text-xs opacity-75">API: {house.apiCode}</div>}
               <div className="text-xs opacity-90">👥 {house.capacity || 4} คน</div>
             </div>
           </div>
           <div className="flex gap-1 sm:gap-2 flex-shrink-0 flex-wrap justify-end">
-            {(() => {
-              // ดึง URL แรกจาก description
-              const urlMatch = (house.description || '').match(/(https?:\/\/[^\s]+)/)
-              const detailUrl = urlMatch ? urlMatch[1] : null
-              
-              if (detailUrl) {
-                return (
-                  <a 
-                    href={detailUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="px-2 sm:px-4 py-1.5 sm:py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-xs sm:text-sm font-medium"
-                  >
-                    รายละเอียดบ้าน
-                  </a>
-                )
-              }
-              return (
-                <button onClick={() => setDetailsModalOpen(true)} className="px-2 sm:px-4 py-1.5 sm:py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-xs sm:text-sm font-medium">
-                  รายละเอียดบ้าน
-                </button>
-              )
-            })()}
             {userRole === 'admin' && onOpenEdit && (
               <button onClick={() => onOpenEdit(index)} className="p-1.5 sm:p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
                 <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
