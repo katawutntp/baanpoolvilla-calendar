@@ -67,9 +67,9 @@ export default function CalendarView({ house, bookings = [] }) {
     
     // Header
     days.push(
-      <div key="header" className="grid grid-cols-7 gap-1 mb-2">
+      <div key="header" className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
         {weekDays.map((day, i) => (
-          <div key={i} className="text-center font-semibold text-gray-600 text-sm py-2">
+          <div key={i} className="text-center font-semibold text-gray-600 text-[10px] sm:text-sm py-1 sm:py-2">
             {day}
           </div>
         ))}
@@ -90,12 +90,12 @@ export default function CalendarView({ house, bookings = [] }) {
       cells.push(
         <div
           key={day}
-          className={`aspect-square border rounded-lg p-1 text-center relative group cursor-pointer transition-all
+          className={`aspect-square border rounded-md sm:rounded-lg p-0.5 sm:p-1 text-center relative group cursor-pointer transition-all
             ${isBooked ? 'bg-red-100 border-red-300 hover:bg-red-200' : 'bg-white hover:bg-gray-50'}
             ${isToday ? 'ring-2 ring-blue-400' : ''}
           `}
         >
-          <div className={`text-sm font-medium ${isBooked ? 'text-red-700' : 'text-gray-700'}`}>
+          <div className={`text-xs sm:text-sm font-medium ${isBooked ? 'text-red-700' : 'text-gray-700'}`}>
             {day}
           </div>
           {isBooked && (
@@ -113,7 +113,7 @@ export default function CalendarView({ house, bookings = [] }) {
     }
     
     days.push(
-      <div key="cells" className="grid grid-cols-7 gap-1">
+      <div key="cells" className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {cells}
       </div>
     )
@@ -133,27 +133,27 @@ export default function CalendarView({ house, bookings = [] }) {
   ]
   
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-white rounded-xl shadow-lg p-3 sm:p-6">
       {/* Header with navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-800">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h2 className="text-base sm:text-xl font-bold text-gray-800 truncate mr-2">
           {house.name || 'บ้าน'}
         </h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="text-lg font-semibold text-gray-700 min-w-[200px] text-center">
+          <div className="text-sm sm:text-lg font-semibold text-gray-700 min-w-[140px] sm:min-w-[200px] text-center">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear() + 543}
           </div>
           <button
             onClick={() => changeMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />

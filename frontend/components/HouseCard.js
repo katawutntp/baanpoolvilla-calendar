@@ -103,19 +103,19 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       {/* Header with month and house name */}
      {/* <div className="bg-gradient-to-r from-[#f36734] to-[#c94b24] text-white p-4"> */}
-        <div className="bg-[#f36734] text-white p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center justify-center w-10 h-10 bg-white bg-opacity-20 rounded-lg">
+        <div className="bg-[#f36734] text-white p-3 sm:p-4">
+        <div className="flex justify-between items-start sm:items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <span className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex-shrink-0">
               <IconHouse />
             </span>
-            <div>
+            <div className="min-w-0">
               <div className="text-xs opacity-90">บ้าน</div>
-              <h2 className="font-bold text-lg">{house.name}</h2>
+              <h2 className="font-bold text-sm sm:text-lg truncate">{house.name}</h2>
               <div className="text-xs opacity-90">👥 {house.capacity || 4} คน</div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2 flex-shrink-0 flex-wrap justify-end">
             {(() => {
               // ดึง URL แรกจาก description
               const urlMatch = (house.description || '').match(/(https?:\/\/[^\s]+)/)
@@ -127,31 +127,31 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                     href={detailUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium"
+                    className="px-2 sm:px-4 py-1.5 sm:py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-xs sm:text-sm font-medium"
                   >
                     รายละเอียดบ้าน
                   </a>
                 )
               }
               return (
-                <button onClick={() => setDetailsModalOpen(true)} className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-sm font-medium">
+                <button onClick={() => setDetailsModalOpen(true)} className="px-2 sm:px-4 py-1.5 sm:py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-md transition text-xs sm:text-sm font-medium">
                   รายละเอียดบ้าน
                 </button>
               )
             })()}
             {userRole === 'admin' && onOpenEdit && (
-              <button onClick={() => onOpenEdit(index)} className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
-                <IconEdit className="w-5 h-5" />
+              <button onClick={() => onOpenEdit(index)} className="p-1.5 sm:p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
+                <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
             {userRole === 'admin' && onOpenWeekly && (
-              <button onClick={() => onOpenWeekly(index)} className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="ตั้งค่าราคา">
-                <IconSettings className="w-5 h-5" />
+              <button onClick={() => onOpenWeekly(index)} className="p-1.5 sm:p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="ตั้งค่าราคา">
+                <IconSettings className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
             {userRole === 'admin' && onDelete && (
-              <button onClick={() => onDelete()} className="p-2 hover:bg-red-500 rounded-lg transition" title="ลบ">
-                <IconTrash className="w-5 h-5" />
+              <button onClick={() => onDelete()} className="p-1.5 sm:p-2 hover:bg-red-500 rounded-lg transition" title="ลบ">
+                <IconTrash className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
           </div>
@@ -172,18 +172,18 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
       </div>
 
       {/* Calendar body */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         {/* Day labels */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
           {['อา','จ','อ','พ','พฤ','ศ','ส'].map((d, idx) => (
-            <div key={d} className="text-center font-bold text-xs py-1 rounded-lg text-gray-600 bg-gray-100">
+            <div key={d} className="text-center font-bold text-[10px] sm:text-xs py-1 rounded-lg text-gray-600 bg-gray-100">
               {d}
             </div>
           ))}
         </div>
 
         {/* Calendar grid - Fixed size cells */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {matrix.map((week, wi) => (
             week.map((day, di) => {
               const inMonth = day.getMonth() === cur.getMonth()
@@ -202,7 +202,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
                 if (priceObj && priceObj.isHoliday) holidayBorder = 'border-red-500 border-2';
                 
                 // Fixed size cell with overflow hidden
-                const cls = `h-12 w-full flex flex-col items-center justify-center text-xs border rounded-lg transition overflow-hidden ${weekdayBg} ${holidayBorder} ${isSameDay(day, today) ? 'ring-2 ring-indigo-400 font-bold' : ''} ${inMonth ? 'cursor-pointer hover:shadow-md' : ''}`
+                const cls = `h-10 sm:h-12 w-full flex flex-col items-center justify-center text-[10px] sm:text-xs border rounded-md sm:rounded-lg transition overflow-hidden ${weekdayBg} ${holidayBorder} ${isSameDay(day, today) ? 'ring-2 ring-indigo-400 font-bold' : ''} ${inMonth ? 'cursor-pointer hover:shadow-md' : ''}`
               
               const handleClick = (currentIso) => () => {
                 if (!inMonth) return
@@ -226,7 +226,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             // ถ้าไม่ใช่วันของเดือนนี้ให้แสดงเซลล์ว่าง
             if (!inMonth) {
               return (
-                <div key={`${wi}-${di}`} className="h-12 w-full border rounded-lg bg-white"></div>
+                <div key={`${wi}-${di}`} className="h-10 sm:h-12 w-full border rounded-md sm:rounded-lg bg-white"></div>
               )
             }
             
@@ -245,8 +245,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
 
       {/* Modal for editing price */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">แก้ไขราคา</h2>
             
             <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
@@ -320,8 +320,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
 
       {/* View-only modal for users */}
       {viewModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">รายละเอียด</h2>
             
             <div className="mb-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
@@ -375,8 +375,8 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
 
       {/* House Details Modal */}
       {detailsModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-[500px] max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">รายละเอียดบ้าน</h2>
             
             <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">

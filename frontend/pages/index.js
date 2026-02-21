@@ -87,90 +87,94 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-blue-100">
       {/* Header สำหรับ Agent */}
       <header className="bg-[#f36734] shadow-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📅</span>
-            <div>
-              <h1 className="text-xl font-bold text-white">ปฏิทิน BaanPoolVilla</h1>
-              <p className="text-sm text-orange-100">ดูราคาและสถานะห้องพัก</p>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📅</span>
+              <div>
+                <h1 className="text-lg sm:text-xl font-bold text-white">ปฏิทิน BaanPoolVilla</h1>
+                <p className="text-xs sm:text-sm text-orange-100">ดูราคาและสถานะห้องพัก</p>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <select
-              value={zoneFilter}
-              onChange={e => setZoneFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
-            >
-              <option value="all">เลือกพื้นที่</option>
-              <option value="pattaya">พัทยา</option>
-              <option value="sattahip">สัตหีบ</option>
-              <option value="bangsaen">บางแสน</option>
-              <option value="rayong">ระยอง</option>
-            </select>
-            <input
-              type="text"
-              placeholder="ค้นหาบ้าน..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={load}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition"
-            >
-              รีเฟรช
-            </button>
+            
+            <div className="flex items-center gap-2 sm:gap-4 sm:ml-auto flex-wrap">
+              <select
+                value={zoneFilter}
+                onChange={e => setZoneFilter(e.target.value)}
+                className="border border-gray-200 rounded-lg px-2 sm:px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 flex-shrink-0"
+              >
+                <option value="all">เลือกพื้นที่</option>
+                <option value="pattaya">พัทยา</option>
+                <option value="sattahip">สัตหีบ</option>
+                <option value="bangsaen">บางแสน</option>
+                <option value="rayong">ระยอง</option>
+              </select>
+              <input
+                type="text"
+                placeholder="ค้นหาบ้าน..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 sm:px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-1 sm:flex-none sm:w-auto text-sm"
+              />
+              <button
+                onClick={load}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg transition text-sm flex-shrink-0"
+              >
+                รีเฟรช
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Date Range Filter */}
-      <div className="max-w-7xl mx-auto px-4 mt-4">
-        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex-wrap">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 mt-3 sm:mt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-3 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-lg">📅</span>
             <span className="text-sm font-medium text-gray-700">ค้นหาบ้านว่าง:</span>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500">เช็คอิน</label>
-            <input 
-              type="date" 
-              value={filterStartDate}
-              onChange={e => setFilterStartDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
-            />
-          </div>
-          <span className="text-gray-400">→</span>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500">เช็คเอาท์</label>
-            <input 
-              type="date" 
-              value={filterEndDate}
-              min={filterStartDate || undefined}
-              onChange={e => setFilterEndDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
-            />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <label className="text-sm text-gray-500 flex-shrink-0">เช็คอิน</label>
+              <input 
+                type="date" 
+                value={filterStartDate}
+                onChange={e => setFilterStartDate(e.target.value)}
+                className="border border-gray-300 rounded-lg px-2 sm:px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none flex-1 sm:flex-none min-w-0"
+              />
+            </div>
+            <span className="text-gray-400 hidden sm:inline">→</span>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <label className="text-sm text-gray-500 flex-shrink-0">เช็คเอาท์</label>
+              <input 
+                type="date" 
+                value={filterEndDate}
+                min={filterStartDate || undefined}
+                onChange={e => setFilterEndDate(e.target.value)}
+                className="border border-gray-300 rounded-lg px-2 sm:px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none flex-1 sm:flex-none min-w-0"
+              />
+            </div>
           </div>
           {isDateFiltering && (
-            <>
-              <div className="flex items-center gap-2 ml-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                <span className="text-green-600 text-sm font-medium">🏠 บ้านว่าง: {filteredHouses.length} หลัง</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                <span className="text-green-600 text-sm font-medium">🏠 ว่าง: {filteredHouses.length} หลัง</span>
               </div>
               <button 
                 onClick={() => { setFilterStartDate(''); setFilterEndDate(''); }}
-                className="ml-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition"
+                className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition"
               >
                 ✕ ล้าง
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {!loading && filteredHouses.length === 0 && (
             <div className="text-center text-gray-500 col-span-full py-12">
               <p className="text-lg">ยังไม่มีบ้านในระบบ</p>

@@ -112,53 +112,44 @@ export default function CalendarPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
         {/* Header */}
         <header className="bg-[#f36734] shadow-md sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">📅</span>
+                <span className="text-2xl sm:text-3xl">📅</span>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">ปฏิทินการจองบ้าน</h1>
-                  <p className="text-sm text-orange-100">
+                  <h1 className="text-lg sm:text-2xl font-bold text-white">ปฏิทินการจองบ้าน</h1>
+                  <p className="text-xs sm:text-sm text-orange-100">
                     {bookings.length} การจอง | {houses.length} บ้าน
                   </p>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Link href="/admin" className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2">
-                  ← กลับ Admin
+              <div className="flex gap-2 sm:gap-3 flex-wrap sm:ml-auto">
+                <Link href="/admin" className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-1 text-xs sm:text-sm">
+                  ← กลับ
                 </Link>
                 <button
                   onClick={() => setShowImportModal(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-1 text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  นำเข้า Excel
+                  📥 Excel
                 </button>
                 <button
                   onClick={handleClearBookings}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-1 text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  ล้างข้อมูล
+                  🗑️ ล้าง
                 </button>
                 <button
                   onClick={loadData}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-1 text-xs sm:text-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  รีเฟรช
+                  🔄 รีเฟรช
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-xs sm:text-sm"
                 >
-                  ออกจากระบบ
+                  ออก
                 </button>
               </div>
             </div>
@@ -166,7 +157,7 @@ export default function CalendarPage() {
         </header>
 
         {/* Content */}
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
