@@ -103,7 +103,13 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       {/* Header with month and house name */}
      {/* <div className="bg-gradient-to-r from-[#f36734] to-[#c94b24] text-white p-4"> */}
-        <div className="bg-[#f36734] text-white p-3 sm:p-4">
+        <div className="bg-[#f36734] text-white p-3 sm:p-4 relative">
+        {!house.location && (
+          <span className="absolute top-2 right-2 flex h-4 w-4" title="ยังไม่ได้ใส่ตำแหน่งพิกัด">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-400 border-2 border-white"></span>
+          </span>
+        )}
         <div className="flex justify-between items-start sm:items-center gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <span className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-lg flex-shrink-0">
@@ -118,9 +124,6 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
           </div>
           <div className="flex gap-1 sm:gap-2 flex-shrink-0 flex-wrap justify-end">
-            {!house.location && (
-              <span className="w-3 h-3 bg-red-500 rounded-full inline-block self-center" title="ยังไม่ได้ใส่ตำแหน่งพิกัด"></span>
-            )}
             {userRole === 'admin' && onOpenEdit && (
               <button onClick={() => onOpenEdit(index)} className="p-1.5 sm:p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
                 <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
