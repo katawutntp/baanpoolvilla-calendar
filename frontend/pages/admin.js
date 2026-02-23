@@ -518,6 +518,8 @@ export default function AdminPage() {
         </div>
         {weeklyOpen && <WeeklyModal houses={houses} defaultHouseId={selectedHouseIdForWeekly} onClose={() => setWeeklyOpen(false)} onSaved={(updated)=>{
           setHouses(prev => prev.map(h => h.id === updated.id ? { ...updated, currentDate: (prev.find(p=>p.id===updated.id)?.currentDate || new Date()) } : h))
+          // Reload to ensure fresh data from Firebase
+          load()
         }} />}
         {adminPanelOpen && <AdminPanel onClose={() => setAdminPanelOpen(false)} />}
         <AddHouseModal 

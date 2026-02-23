@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import * as api from '../lib/api'
+import * as firebaseApi from '../lib/firebaseApi'
 
 export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(defaultHouseId || houses?.[0]?.id || null)
@@ -63,10 +64,22 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
       
       let updated = null
       
-      // เรียก weekday-prices เฉพาะเมื่อมีการกรอกราคาวันธรรมดา
+      // เรียก weekday-prices — ใช้ Firebase โดยตรง + fallback API
       if (hasWeekdayPrice) {
-        const weekdayPayload = { startDate, endDate, mapping }
-        updated = await api.applyWeekdayPrices(selectedHouseId, weekdayPayload)
+        try {
+          updated = await firebaseApi.applyWeekdayPrices(selectedHouseId, startDate, endDate, null, null, mapping)
+        } catch (fbErr) {
+          console.error('Firebase weekday-prices failed, trying API:', fbErr)
+          const weekdayPayload = { startDate, endDate, mapping }
+          const apiResult = await api.applyWeekdayPrices(selectedHouseId, weekdayPayload)
+          if (apiResult && !apiResult.error) {
+            updated = apiResult
+          } else {
+            console.error('API weekday-prices also failed:', apiResult)
+            alert('บันทึกราคารายสัปดาห์ล้มเหลว: ' + (apiResult?.error || 'Unknown error'))
+            return
+          }
+        }
       }
       
       // เรียก holiday-prices สำหรับวันหยุดพิเศษ
@@ -76,15 +89,22 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
           const holidayPayload = { dates: h.dates, price: Number(h.price) }
           console.log('Sending holiday payload:', holidayPayload)
           try {
-            const result = await api.applyHolidayPrices(selectedHouseId, holidayPayload)
+            const result = await firebaseApi.applyHolidayPrices(selectedHouseId, holidayPayload.dates, holidayPayload.price)
             console.log('Holiday response:', result)
-            if (result.error === 'unauthorized') {
-              alert('Session หมดอายุ กรุณา Logout แล้ว Login ใหม่')
-              return
-            }
             updated = result
           } catch (holidayErr) {
-            console.error('Holiday API error:', holidayErr)
+            console.error('Firebase holiday failed, trying API:', holidayErr)
+            try {
+              const apiResult = await api.applyHolidayPrices(selectedHouseId, holidayPayload)
+              if (apiResult && !apiResult.error) {
+                updated = apiResult
+              } else if (apiResult?.error === 'unauthorized') {
+                alert('Session หมดอายุ กรุณา Logout แล้ว Login ใหม่')
+                return
+              }
+            } catch (apiErr) {
+              console.error('Holiday API also failed:', apiErr)
+            }
           }
         }
       }
@@ -95,7 +115,7 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
       onClose && onClose()
     } catch (err){
       console.error(err)
-      alert('การบันทึกล้มเหลว')
+      alert('การบันทึกล้มเหลว: ' + (err.message || err))
     }
   }
 
