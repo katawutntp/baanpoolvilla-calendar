@@ -118,6 +118,9 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </div>
           </div>
           <div className="flex gap-1 sm:gap-2 flex-shrink-0 flex-wrap justify-end">
+            {!house.location && (
+              <span className="w-3 h-3 bg-red-500 rounded-full inline-block self-center" title="ยังไม่ได้ใส่ตำแหน่งพิกัด"></span>
+            )}
             {userRole === 'admin' && onOpenEdit && (
               <button onClick={() => onOpenEdit(index)} className="p-1.5 sm:p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition" title="แก้ไข">
                 <IconEdit className="w-4 h-4 sm:w-5 sm:h-5" />
