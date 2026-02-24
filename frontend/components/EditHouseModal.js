@@ -5,6 +5,7 @@ import { IconCopy } from './icons'
 
 export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated }) {
   const [name, setName] = useState('')
+  const [userDisplayName, setUserDisplayName] = useState('')
   const [code, setCode] = useState('')
   const [apiCode, setApiCode] = useState('')
   const [capacity, setCapacity] = useState('4')
@@ -20,6 +21,7 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
   useEffect(() => {
     if (house) {
       setName(house.name || '')
+      setUserDisplayName(house.userDisplayName || '')
       setCode(house.code || '')
       setApiCode(house.apiCode || '')
       setCapacity(String(house.capacity || 4))
@@ -51,10 +53,10 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
       const beds = parseInt(bedrooms) || 1
       const baths = parseInt(bathrooms) || 1
       // บันทึกลง Firebase
-      const updated = await firebaseApi.updateHouse(house.id, { name, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
+      const updated = await firebaseApi.updateHouse(house.id, { name, userDisplayName, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       // อัพเดท local API ด้วย (เพื่อ backward compatibility)
-      await api.updateHouse(house.id, { name, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
+      await api.updateHouse(house.id, { name, userDisplayName, code, apiCode, capacity: cap, bedrooms: beds, bathrooms: baths, zone, description, location })
       
       if (updated) {
         onHouseUpdated({ ...house, ...updated })
@@ -100,6 +102,18 @@ export default function EditHouseModal({ isOpen, onClose, house, onHouseUpdated 
               placeholder="กรอกชื่อบ้าน"
               className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
             />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อปฏิทินสำหรับ User</label>
+            <input
+              type="text"
+              value={userDisplayName}
+              onChange={e => setUserDisplayName(e.target.value)}
+              placeholder="ชื่อที่แสดงในฝั่ง User (ถ้าไม่กรอกจะใช้ชื่อบ้านหลัก)"
+              className="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">ชื่อนี้จะแสดงเฉพาะฝั่ง User หลังบ้านยังใช้ชื่อเดิม</p>
           </div>
 
           <div className="mb-4">

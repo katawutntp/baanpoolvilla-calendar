@@ -41,9 +41,9 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
   }, [selectedHouseId, houses])
   
   const [holidays, setHolidays] = useState([
-    { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateInput: '' },
-    { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [], dateInput: '' },
-    { key: 'holiday3', label: 'วันหยุดพิเศษ 3', price: '', dates: [], dateInput: '' }
+    { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateStartInput: '', dateEndInput: '' },
+    { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [], dateStartInput: '', dateEndInput: '' },
+    { key: 'holiday3', label: 'วันหยุดพิเศษ 3', price: '', dates: [], dateStartInput: '', dateEndInput: '' }
   ])
 
   async function handleSave(){
@@ -172,25 +172,45 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
           <div className="grid grid-cols-1 gap-3">
             {holidays.map((h, hi) => (
               <div key={h.key} className="bg-gray-50 rounded-lg p-3">
-                <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                  <div className="flex-1">
+                <div className="flex flex-col gap-2 mb-2">
+                  <div>
                     <label className="block text-xs mb-1">ราคา</label>
                     <input type="number" value={h.price} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], price: e.target.value }; return copy })} placeholder="ราคา" className="w-full border p-2 rounded-md" />
                   </div>
-                  <div className="flex-1">
+                  <div>
                     <label className="block text-xs mb-1">วันที่</label>
-                    <div className="flex gap-2">
-                      <input type="date" value={h.dateInput} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], dateInput: e.target.value }; return copy })} className="border p-2 rounded-md flex-1" />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2 items-center">
+                        <input type="date" value={h.dateStartInput} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], dateStartInput: e.target.value }; return copy })} className="border p-2 rounded-md flex-1" />
+                        <span className="text-gray-400 text-xs">ถึง</span>
+                        <input type="date" value={h.dateEndInput} min={h.dateStartInput || undefined} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], dateEndInput: e.target.value }; return copy })} className="border p-2 rounded-md flex-1" />
+                      </div>
                       <button onClick={() => setHolidays(prev => { 
                         const copy = prev.map(p => ({ ...p, dates: [...p.dates] })); 
                         const item = copy[hi]; 
-                        if (!item.dateInput) return prev; 
-                        if (!item.dates.includes(item.dateInput)) {
-                          item.dates = [...item.dates, item.dateInput];
+                        if (!item.dateStartInput) return prev;
+                        
+                        // ถ้าไม่ได้ใส่วันสิ้นสุด ให้ใช้วันเริ่มต้นเป็นวันเดียว
+                        const endDate = item.dateEndInput || item.dateStartInput;
+                        const start = new Date(item.dateStartInput);
+                        const end = new Date(endDate);
+                        
+                        if (start > end) return prev;
+                        
+                        // เพิ่มทุกวันในช่วง
+                        const current = new Date(start);
+                        while (current <= end) {
+                          const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
+                          if (!item.dates.includes(iso)) {
+                            item.dates.push(iso);
+                          }
+                          current.setDate(current.getDate() + 1);
                         }
-                        item.dateInput = ''; 
+                        
+                        item.dateStartInput = ''; 
+                        item.dateEndInput = ''; 
                         return copy;
-                      })} className="px-3 py-1 bg-gray-200 rounded-md hover:bg-gray-300">เพิ่ม</button>
+                      })} className="px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-medium">เพิ่ม</button>
                     </div>
                   </div>
                 </div>

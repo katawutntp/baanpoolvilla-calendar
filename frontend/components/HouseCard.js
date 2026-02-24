@@ -117,9 +117,9 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             </span>
             <div className="min-w-0">
               <div className="text-xs opacity-90">บ้าน</div>
-              <h2 className="font-bold text-sm sm:text-lg">{house.name}</h2>
-              {house.code && <div className="text-xs opacity-75 font-mono">{house.code}</div>}
-              {house.apiCode && <div className="text-xs opacity-75">API: {house.apiCode}</div>}
+              <h2 className="font-bold text-sm sm:text-lg">{userRole === 'admin' ? house.name : (house.userDisplayName || house.name)}</h2>
+              {userRole === 'admin' && house.code && <div className="text-xs opacity-75 font-mono">{house.code}</div>}
+              {userRole === 'admin' && house.apiCode && <div className="text-xs opacity-75">API: {house.apiCode}</div>}
               <div className="text-xs opacity-90">👥 {house.capacity || 4} คน</div>
             </div>
           </div>
@@ -311,7 +311,7 @@ export default function HouseCard({ house, index, onChangeMonth, onDelete, onOpe
             
             <div className="mb-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
               <p className="text-sm text-gray-600">🏠 บ้าน</p>
-              <p className="text-xl font-bold text-indigo-700">{house.name}</p>
+              <p className="text-xl font-bold text-indigo-700">{house.userDisplayName || house.name}</p>
             </div>
 
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
