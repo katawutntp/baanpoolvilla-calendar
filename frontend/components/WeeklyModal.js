@@ -2,6 +2,105 @@ import React, { useState, useEffect } from 'react'
 import * as api from '../lib/api'
 import * as firebaseApi from '../lib/firebaseApi'
 
+// Mini calendar component สำหรับเลือกวันที่แบบช่วง
+function MiniRangeCalendar({ onAddDates }) {
+  const [viewDate, setViewDate] = useState(new Date())
+  const [rangeStart, setRangeStart] = useState(null)
+  const [rangeEnd, setRangeEnd] = useState(null)
+
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+  const thaiMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+  
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  
+  const cells = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+  function toIso(day) {
+    return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+  }
+
+  function handleDayClick(day) {
+    if (!rangeStart || (rangeStart && rangeEnd)) {
+      // เริ่มเลือกใหม่
+      setRangeStart(day)
+      setRangeEnd(null)
+    } else {
+      // เลือกวันสิ้นสุด
+      if (day < rangeStart) {
+        setRangeEnd(rangeStart)
+        setRangeStart(day)
+      } else {
+        setRangeEnd(day)
+      }
+    }
+  }
+
+  function isInRange(day) {
+    if (!rangeStart) return false
+    if (!rangeEnd) return day === rangeStart
+    return day >= rangeStart && day <= rangeEnd
+  }
+
+  function handleAdd() {
+    if (!rangeStart) return
+    const end = rangeEnd || rangeStart
+    const dates = []
+    for (let d = rangeStart; d <= end; d++) {
+      dates.push(toIso(d))
+    }
+    onAddDates(dates)
+    setRangeStart(null)
+    setRangeEnd(null)
+  }
+
+  function handleClear() {
+    setRangeStart(null)
+    setRangeEnd(null)
+  }
+
+  return (
+    <div className="border rounded-lg p-2 bg-white">
+      <div className="flex items-center justify-between mb-2">
+        <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500">&lt;</button>
+        <span className="text-sm font-medium">{thaiMonths[month]} {year + 543}</span>
+        <button type="button" onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1 hover:bg-gray-100 rounded text-gray-500">&gt;</button>
+      </div>
+      <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium text-gray-500 mb-1">
+        {['อา','จ','อ','พ','พฤ','ศ','ส'].map(d => <div key={d}>{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-0.5">
+        {cells.map((day, i) => {
+          if (!day) return <div key={`e${i}`} className="h-7" />
+          const inRange = isInRange(day)
+          const isStart = day === rangeStart
+          const isEnd = day === rangeEnd
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleDayClick(day)}
+              className={`h-7 text-xs rounded transition
+                ${inRange ? 'bg-indigo-500 text-white' : 'hover:bg-gray-100 text-gray-700'}
+                ${isStart || isEnd ? 'ring-2 ring-indigo-600 font-bold' : ''}
+              `}
+            >
+              {day}
+            </button>
+          )
+        })}
+      </div>
+      <div className="flex gap-2 mt-2">
+        <button type="button" onClick={handleClear} className="flex-1 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-50">ล้าง</button>
+        <button type="button" onClick={handleAdd} disabled={!rangeStart} className="flex-1 px-2 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-40">เพิ่ม {rangeStart ? `(${(rangeEnd || rangeStart) - rangeStart + 1} วัน)` : ''}</button>
+      </div>
+    </div>
+  )
+}
+
 export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(defaultHouseId || houses?.[0]?.id || null)
   
@@ -41,9 +140,9 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
   }, [selectedHouseId, houses])
   
   const [holidays, setHolidays] = useState([
-    { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [], dateStartInput: '', dateEndInput: '' },
-    { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [], dateStartInput: '', dateEndInput: '' },
-    { key: 'holiday3', label: 'วันหยุดพิเศษ 3', price: '', dates: [], dateStartInput: '', dateEndInput: '' }
+    { key: 'holiday1', label: 'วันหยุดพิเศษ 1', price: '', dates: [] },
+    { key: 'holiday2', label: 'วันหยุดพิเศษ 2', price: '', dates: [] },
+    { key: 'holiday3', label: 'วันหยุดพิเศษ 3', price: '', dates: [] }
   ])
 
   async function handleSave(){
@@ -120,8 +219,8 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-lg">
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-lg my-auto max-h-[95vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="font-bold text-lg mb-4 text-center">ตั้งราคาตามวันในสัปดาห์ (map ถึง 31 ธ.ค.)</div>
         <div className="mb-4">
           <label className="block text-sm mb-1 font-medium">เลือกบ้าน</label>
@@ -174,44 +273,20 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
               <div key={h.key} className="bg-gray-50 rounded-lg p-3">
                 <div className="flex flex-col gap-2 mb-2">
                   <div>
-                    <label className="block text-xs mb-1">ราคา</label>
+                    <label className="block text-xs mb-1 font-medium">ราคา</label>
                     <input type="number" value={h.price} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], price: e.target.value }; return copy })} placeholder="ราคา" className="w-full border p-2 rounded-md" />
                   </div>
                   <div>
-                    <label className="block text-xs mb-1">วันที่</label>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2 items-center">
-                        <input type="date" value={h.dateStartInput} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], dateStartInput: e.target.value }; return copy })} className="border p-2 rounded-md flex-1" />
-                        <span className="text-gray-400 text-xs">ถึง</span>
-                        <input type="date" value={h.dateEndInput} min={h.dateStartInput || undefined} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], dateEndInput: e.target.value }; return copy })} className="border p-2 rounded-md flex-1" />
-                      </div>
-                      <button onClick={() => setHolidays(prev => { 
-                        const copy = prev.map(p => ({ ...p, dates: [...p.dates] })); 
-                        const item = copy[hi]; 
-                        if (!item.dateStartInput) return prev;
-                        
-                        // ถ้าไม่ได้ใส่วันสิ้นสุด ให้ใช้วันเริ่มต้นเป็นวันเดียว
-                        const endDate = item.dateEndInput || item.dateStartInput;
-                        const start = new Date(item.dateStartInput);
-                        const end = new Date(endDate);
-                        
-                        if (start > end) return prev;
-                        
-                        // เพิ่มทุกวันในช่วง
-                        const current = new Date(start);
-                        while (current <= end) {
-                          const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
-                          if (!item.dates.includes(iso)) {
-                            item.dates.push(iso);
-                          }
-                          current.setDate(current.getDate() + 1);
-                        }
-                        
-                        item.dateStartInput = ''; 
-                        item.dateEndInput = ''; 
-                        return copy;
-                      })} className="px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-medium">เพิ่ม</button>
-                    </div>
+                    <label className="block text-xs mb-1 font-medium">เลือกวันที่ (กดเลือกช่วงแล้วกดเพิ่ม)</label>
+                    <MiniRangeCalendar onAddDates={(dates) => setHolidays(prev => {
+                      const copy = prev.map(p => ({ ...p, dates: [...p.dates] }));
+                      const item = copy[hi];
+                      dates.forEach(iso => {
+                        if (!item.dates.includes(iso)) item.dates.push(iso);
+                      });
+                      item.dates.sort();
+                      return copy;
+                    })} />
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap mt-2">
