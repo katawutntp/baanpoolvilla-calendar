@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import HouseCard from '../components/HouseCard'
+import { MiniRangeCalendar } from '../components/WeeklyModal'
 import * as api from '../lib/api'
 
 export default function Home() {
@@ -13,6 +14,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [filterStartDate, setFilterStartDate] = useState('')
   const [filterEndDate, setFilterEndDate] = useState('')
+  const [calendarPopupOpen, setCalendarPopupOpen] = useState(false)
+  const calendarPopupRef = useRef(null)
 
   useEffect(() => { 
     load() 
@@ -134,30 +137,41 @@ export default function Home() {
             <span className="text-lg">📅</span>
             <span className="text-sm font-medium text-gray-700">ค้นหาบ้านว่าง:</span>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="text-sm text-gray-500 flex-shrink-0">เช็คอิน</label>
-              <input 
-                type="date" 
-                value={filterStartDate}
-                onChange={e => setFilterStartDate(e.target.value)}
-                className="border border-gray-300 rounded-lg px-2 sm:px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none flex-1 sm:flex-none min-w-0"
-              />
-            </div>
-            <span className="text-gray-400 hidden sm:inline">→</span>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <label className="text-sm text-gray-500 flex-shrink-0">เช็คเอาท์</label>
-              <input 
-                type="date" 
-                value={filterEndDate}
-                min={filterStartDate || undefined}
-                onChange={e => setFilterEndDate(e.target.value)}
-                className="border border-gray-300 rounded-lg px-2 sm:px-3 py-2 text-sm focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none flex-1 sm:flex-none min-w-0"
-              />
-            </div>
+          <div className="relative flex-1" ref={calendarPopupRef}>
+            <button
+              onClick={() => setCalendarPopupOpen(!calendarPopupOpen)}
+              className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition w-full sm:w-auto justify-center ${
+                isDateFiltering 
+                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700' 
+                  : 'bg-white border-gray-300 text-gray-600 hover:border-indigo-300'
+              }`}
+            >
+              {isDateFiltering ? (
+                <span>เช็คอิน <b>{filterStartDate}</b> → เช็คเอาท์ <b>{filterEndDate}</b></span>
+              ) : (
+                <span>เลือกช่วงวันที่เช็คอิน - เช็คเอาท์</span>
+              )}
+            </button>
+            {calendarPopupOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setCalendarPopupOpen(false)} />
+                <div className="absolute top-full left-0 mt-2 z-50 shadow-xl rounded-xl border border-gray-200 bg-white p-1">
+                  <MiniRangeCalendar 
+                    mode="range" 
+                    onSelectRange={(start, end) => {
+                      setFilterStartDate(start)
+                      setFilterEndDate(end)
+                      if (start && end && start !== end) {
+                        setCalendarPopupOpen(false)
+                      }
+                    }} 
+                  />
+                </div>
+              </>
+            )}
           </div>
           {isDateFiltering && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
                 <span className="text-green-600 text-sm font-medium">🏠 ว่าง: {filteredHouses.length} หลัง</span>
               </div>

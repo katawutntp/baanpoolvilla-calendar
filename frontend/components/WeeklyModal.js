@@ -3,7 +3,7 @@ import * as api from '../lib/api'
 import * as firebaseApi from '../lib/firebaseApi'
 
 // Mini calendar component สำหรับเลือกวันที่แบบช่วง
-function MiniRangeCalendar({ onAddDates }) {
+function MiniRangeCalendar({ onAddDates, onSelectRange, mode = 'add' }) {
   const [viewDate, setViewDate] = useState(new Date())
   const [rangeStart, setRangeStart] = useState(null)
   const [rangeEnd, setRangeEnd] = useState(null)
@@ -25,16 +25,18 @@ function MiniRangeCalendar({ onAddDates }) {
 
   function handleDayClick(day) {
     if (!rangeStart || (rangeStart && rangeEnd)) {
-      // เริ่มเลือกใหม่
       setRangeStart(day)
       setRangeEnd(null)
+      if (mode === 'range' && onSelectRange) {
+        onSelectRange(toIso(day), toIso(day))
+      }
     } else {
-      // เลือกวันสิ้นสุด
-      if (day < rangeStart) {
-        setRangeEnd(rangeStart)
-        setRangeStart(day)
-      } else {
-        setRangeEnd(day)
+      let s = rangeStart, e = day
+      if (day < rangeStart) { s = day; e = rangeStart }
+      setRangeStart(s)
+      setRangeEnd(e)
+      if (mode === 'range' && onSelectRange) {
+        onSelectRange(toIso(s), toIso(e))
       }
     }
   }
@@ -52,7 +54,7 @@ function MiniRangeCalendar({ onAddDates }) {
     for (let d = rangeStart; d <= end; d++) {
       dates.push(toIso(d))
     }
-    onAddDates(dates)
+    if (onAddDates) onAddDates(dates)
     setRangeStart(null)
     setRangeEnd(null)
   }
@@ -60,7 +62,12 @@ function MiniRangeCalendar({ onAddDates }) {
   function handleClear() {
     setRangeStart(null)
     setRangeEnd(null)
+    if (mode === 'range' && onSelectRange) {
+      onSelectRange('', '')
+    }
   }
+
+  const rangeCount = rangeStart ? (rangeEnd || rangeStart) - rangeStart + 1 : 0
 
   return (
     <div className="border rounded-lg p-2 bg-white">
@@ -77,7 +84,7 @@ function MiniRangeCalendar({ onAddDates }) {
           if (!day) return <div key={`e${i}`} className="h-7" />
           const inRange = isInRange(day)
           const isStart = day === rangeStart
-          const isEnd = day === rangeEnd
+          const isEnd = day === (rangeEnd || rangeStart)
           return (
             <button
               key={i}
@@ -95,11 +102,15 @@ function MiniRangeCalendar({ onAddDates }) {
       </div>
       <div className="flex gap-2 mt-2">
         <button type="button" onClick={handleClear} className="flex-1 px-2 py-1.5 text-xs border rounded-md hover:bg-gray-50">ล้าง</button>
-        <button type="button" onClick={handleAdd} disabled={!rangeStart} className="flex-1 px-2 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-40">เพิ่ม {rangeStart ? `(${(rangeEnd || rangeStart) - rangeStart + 1} วัน)` : ''}</button>
+        {mode === 'add' && (
+          <button type="button" onClick={handleAdd} disabled={!rangeStart} className="flex-1 px-2 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-40">เพิ่ม {rangeCount > 0 ? `(${rangeCount} วัน)` : ''}</button>
+        )}
       </div>
     </div>
   )
 }
+
+export { MiniRangeCalendar }
 
 export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSaved }){
   const [selectedHouseId, setSelectedHouseId] = useState(defaultHouseId || houses?.[0]?.id || null)
@@ -277,16 +288,26 @@ export default function WeeklyModal({ houses = [], defaultHouseId, onClose, onSa
                     <input type="number" value={h.price} onChange={e => setHolidays(prev => { const copy = [...prev]; copy[hi] = { ...copy[hi], price: e.target.value }; return copy })} placeholder="ราคา" className="w-full border p-2 rounded-md" />
                   </div>
                   <div>
-                    <label className="block text-xs mb-1 font-medium">เลือกวันที่ (กดเลือกช่วงแล้วกดเพิ่ม)</label>
-                    <MiniRangeCalendar onAddDates={(dates) => setHolidays(prev => {
-                      const copy = prev.map(p => ({ ...p, dates: [...p.dates] }));
-                      const item = copy[hi];
-                      dates.forEach(iso => {
-                        if (!item.dates.includes(iso)) item.dates.push(iso);
-                      });
-                      item.dates.sort();
-                      return copy;
-                    })} />
+                    <button 
+                      type="button"
+                      onClick={() => setHolidays(prev => prev.map((p, idx) => idx === hi ? { ...p, calendarOpen: !p.calendarOpen } : p))}
+                      className="flex items-center gap-2 px-3 py-2 text-xs bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition w-full justify-center font-medium text-indigo-700"
+                    >
+                      📅 {h.calendarOpen ? 'ซ่อนปฏิทิน' : 'เลือกวันที่'}
+                    </button>
+                    {h.calendarOpen && (
+                      <div className="mt-2">
+                        <MiniRangeCalendar onAddDates={(dates) => setHolidays(prev => {
+                          const copy = prev.map(p => ({ ...p, dates: [...p.dates] }));
+                          const item = copy[hi];
+                          dates.forEach(iso => {
+                            if (!item.dates.includes(iso)) item.dates.push(iso);
+                          });
+                          item.dates.sort();
+                          return copy;
+                        })} />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap mt-2">
